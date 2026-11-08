@@ -3,3 +3,5 @@ out/frames/
 out/stills/
 out/*.png
 out/*.log
+# full-quality master is too big for GitHub; the committed file is out/small-business-boom-web.mp4
+out/small-business-boom.mp4
