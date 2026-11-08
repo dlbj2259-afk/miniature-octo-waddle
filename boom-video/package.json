@@ -1,0 +1,12 @@
+{
+  "name": "small-business-boom-video",
+  "private": true,
+  "description": "Vertical 3D explainer video: what if America had a sudden small-business boom?",
+  "scripts": {
+    "render": "node render.cjs",
+    "stills": "node render.cjs --stills 2,6,12,20,30,40,48,55,62,70"
+  },
+  "dependencies": {
+    "three": "0.180.0"
+  }
+}

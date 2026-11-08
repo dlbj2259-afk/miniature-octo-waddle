@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Small-Business Boom</title>
+<style>
+  html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #070b1a; }
+  body { font-family: 'Inter', 'Inter Display', system-ui, sans-serif; color: #fff; -webkit-font-smoothing: antialiased; }
+  #c { position: absolute; inset: 0; width: 1080px; height: 1920px; display: block; }
+  .layer { position: absolute; left: 0; right: 0; pointer-events: none; }
+  #scrimTop { top: 0; height: 780px; background: linear-gradient(to bottom, rgba(4,7,18,.88) 0%, rgba(4,7,18,.55) 55%, rgba(4,7,18,0) 100%); }
+  #scrimBot { bottom: 0; height: 820px; background: linear-gradient(to top, rgba(4,7,18,.9) 0%, rgba(4,7,18,.55) 50%, rgba(4,7,18,0) 100%); }
+
+  #hud { top: 0; text-align: center; }
+  #kicker { position: absolute; top: 168px; left: 0; right: 0; font-weight: 700; font-size: 32px; letter-spacing: .32em; color: #ffc145; }
+  #counter { position: absolute; top: 205px; left: 0; right: 0; height: 210px; display: flex; align-items: baseline; justify-content: center; gap: 26px;
+             font-family: 'Inter Display', 'Inter', sans-serif; font-weight: 800; font-variant-numeric: tabular-nums; transform-origin: 50% 60%; }
+  #num { font-size: 184px; letter-spacing: -.02em; line-height: 1; text-shadow: 0 6px 30px rgba(0,0,0,.45); }
+  #unit { font-size: 92px; letter-spacing: .02em; line-height: 1; }
+  #phase { position: absolute; top: 428px; left: 0; right: 0; font-weight: 600; font-size: 29px; letter-spacing: .28em; color: #a9bbe0; }
+  #bar { position: absolute; top: 486px; left: 150px; width: 780px; height: 8px; border-radius: 4px; background: rgba(255,255,255,.16); }
+  #barFill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 4px; background: linear-gradient(90deg, #5ad1ff, #ffc145); }
+  .tick { position: absolute; top: -6px; width: 20px; height: 20px; margin-left: -10px; border-radius: 50%; background: #2a3354; border: 3px solid rgba(255,255,255,.35); box-sizing: border-box; }
+  .tick.on { background: #ffc145; border-color: #fff; }
+  .tick.gap { background: transparent; border-color: rgba(255,255,255,.5); width: 4px; margin-left: -2px; border-radius: 2px; border-width: 0 2px; top: -10px; height: 28px; }
+  #chip { position: absolute; top: 534px; left: 50%; transform: translateX(-50%); display: flex; gap: 22px; align-items: center; white-space: nowrap;
+          padding: 16px 34px; border-radius: 999px; background: rgba(10,16,36,.72); border: 2px solid rgba(255,255,255,.14); }
+  #chipLabel { font-weight: 700; font-size: 27px; letter-spacing: .16em; color: #a9bbe0; }
+  #chipVal { font-family: 'Inter Display', 'Inter', sans-serif; font-weight: 800; font-size: 46px; font-variant-numeric: tabular-nums; color: #fff; }
+
+  #cap { bottom: 360px; padding: 0 56px; display: flex; justify-content: center; }
+  #capBox { max-width: 968px; text-align: center; padding: 30px 40px 34px; border-radius: 34px; background: rgba(8,12,30,.62);
+            border: 2px solid rgba(255,255,255,.1); font-weight: 800; font-size: 60px; line-height: 1.16; letter-spacing: -.01em; }
+  #capBox .w { display: inline-block; white-space: pre; }
+  #capBox .hl { color: #ffc145; }
+
+  #intro { top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 0 80px; background: rgba(5,8,20,.55); }
+  #intro .k { font-weight: 800; font-size: 52px; letter-spacing: .3em; color: #ffc145; margin-bottom: 28px; }
+  #intro .t { font-family: 'Inter Display', 'Inter', sans-serif; font-weight: 800; font-size: 104px; line-height: 1.04; letter-spacing: -.02em; }
+  #intro .s { margin-top: 40px; font-weight: 600; font-size: 34px; letter-spacing: .14em; color: #a9bbe0; }
+
+  #science { top: 0; bottom: 0; }
+  .card { position: absolute; left: 60px; right: 60px; bottom: 470px; padding: 44px 48px 50px; border-radius: 38px; background: rgba(8,12,30,.78);
+          border: 2px solid rgba(255,255,255,.12); }
+  .card h2 { margin: 0 0 22px; font-weight: 800; font-size: 32px; letter-spacing: .3em; color: #5ad1ff; }
+  .card p { margin: 0; font-weight: 700; font-size: 54px; line-height: 1.2; letter-spacing: -.01em; }
+  .card p .hl { color: #ffc145; }
+  #sources { position: absolute; left: 70px; right: 70px; bottom: 330px; text-align: center; font-weight: 500; font-size: 25px; line-height: 1.4; color: #a9bbe0; }
+</style>
+<script type="importmap">
+{ "imports": { "three": "/node_modules/three/build/three.module.js", "three/addons/": "/node_modules/three/examples/jsm/" } }
+</script>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<div class="layer" id="scrimTop"></div>
+<div class="layer" id="scrimBot"></div>
+
+<div class="layer" id="hud">
+  <div id="kicker">WHAT IF: A SMALL-BUSINESS BOOM</div>
+  <div id="counter"><span id="num">00:00</span><span id="unit"></span></div>
+  <div id="phase">THE FIRST HOUR</div>
+  <div id="bar"><div id="barFill"></div></div>
+  <div id="chip"><span id="chipLabel">APPLICATIONS FILED</span><span id="chipVal">0</span></div>
+</div>
+
+<div class="layer" id="cap"><div id="capBox"></div></div>
+
+<div class="layer" id="intro">
+  <div class="k">WHAT IF</div>
+  <div class="t">America suddenly had a small&#8209;business boom?</div>
+  <div class="s">A SCIENCE-BASED HYPOTHETICAL</div>
+</div>
+
+<div class="layer" id="science">
+  <div class="card" id="sci1"><h2>THE SCIENCE</h2><p>Growth spreads through <span class="hl">production, employment, spending</span> and <span class="hl">competition</span>.</p></div>
+  <div class="card" id="sci2"><h2>THE SCIENCE</h2><p>But registering a business isn't creating one. Only a <span class="hl">fraction</span> of applications become employers, often after <span class="hl">months or years</span>.</p></div>
+  <div id="sources">Hypothetical scenario; real effects overlap.<br>Data: U.S. Census Bureau Business Formation Statistics · BLS Business Employment Dynamics</div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const W = 1080, H = 1920;
+
+// ---------- helpers ----------
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const rnd = mulberry32(20261108);
+const hash = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, f) => a + (b - a) * f;
+const ramp = (x, a, b) => clamp((x - a) / (b - a));
+const smooth = f => f * f * (3 - 2 * f);
+const easeOut = f => 1 - Math.pow(1 - f, 3);
+const easeOutBack = f => { if (f <= 0) return 0; if (f >= 1) return 1; const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(f - 1, 3) + c1 * Math.pow(f - 1, 2); };
+
+// ---------- timeline ----------
+const BEATS = [
+  { k: 'm', v: 0,  cap: '[Millions] of Americans decide to start businesses.' },
+  { k: 'm', v: 1,  cap: 'Online business filings [spike].' },
+  { k: 'm', v: 2,  cap: 'Loan and credit applications surge, but approvals take [weeks].' },
+  { k: 'm', v: 3,  cap: 'Orders for equipment and inventory hit [suppliers].' },
+  { k: 'm', v: 5,  cap: 'Payments are authorized. Most settle over the [next day or two].' },
+  { k: 'm', v: 10, cap: 'Suppliers start filling orders from [existing inventory].' },
+  { k: 'm', v: 30, cap: 'The national economy looks [almost unchanged].' },
+  { k: 'm', v: 60, cap: 'Nearly all of the new businesses exist [only on paper].' },
+  { k: 'h', v: 24, cap: 'Filings, purchases and business plans keep [piling up].' },
+  { k: 'd', v: 7,  cap: 'Online and service businesses [open]. Storefronts still wait on leases and permits.' },
+  { k: 'd', v: 30, cap: 'Workers leave old jobs. Rent, equipment and wages [rise] in hot sectors. Prices [fall] in crowded niches.' },
+  { k: 'mo', v: 6, cap: 'Successful businesses [expand]. Others run out of cash and [close].' },
+  { k: 'y', v: 1,  cap: 'About [1 in 5] has closed. A few fast-growing firms create [most of the new jobs].' },
+  { k: 'y', v: 5,  cap: 'About [half] survive, reshaping neighborhoods, competition and local economies.' },
+];
+const INTRO = 3.2, OUTRO = 12.0;
+let acc = INTRO;
+for (const b of BEATS) {
+  b.words = b.cap.split(' ');
+  b.d = Math.max(3.3, b.words.length / 3.1 + 1.35);
+  b.start = acc; acc += b.d;
+}
+const OUTRO_START = acc;
+const TOTAL = acc + OUTRO;
+window.TOTAL = TOTAL;
+
+function beatPos(t) {
+  if (t < INTRO) return -1 + t / INTRO;
+  for (let i = 0; i < BEATS.length; i++) { const b = BEATS[i]; if (t < b.start + b.d) return i + (t - b.start) / b.d; }
+  return BEATS.length + Math.min(1, (t - OUTRO_START) / OUTRO);
+}
+
+// ---------- renderer ----------
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(W, H, false);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.18;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, W / H, 0.1, 400);
+scene.fog = new THREE.Fog(0x1a2140, 45, 130);
+
+const skyMat = new THREE.ShaderMaterial({
+  side: THREE.BackSide, depthWrite: false, fog: false,
+  uniforms: { top: { value: new THREE.Color() }, bot: { value: new THREE.Color() } },
+  vertexShader: 'varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+  fragmentShader: 'uniform vec3 top; uniform vec3 bot; varying vec3 vP; void main(){ float h = clamp(vP.y*1.6+0.12,0.0,1.0); gl_FragColor = vec4(mix(bot, top, pow(h,0.8)), 1.0); }'
+});
+const sky = new THREE.Mesh(new THREE.SphereGeometry(300, 32, 16), skyMat);
+scene.add(sky);
+
+const hemi = new THREE.HemisphereLight(0xbfd4ff, 0x2a2430, 0.6);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+sun.position.set(20, 32, 14);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -24, right: 24, top: 24, bottom: -24, near: 1, far: 100 });
+sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.03;
+scene.add(sun);
+
+// ---------- city ----------
+const N = 9, SP = 2.9, LOT = 2.15;
+const EXT = (N * SP) / 2 + 0.6;
+const lotPos = (i, j) => new THREE.Vector3((i - (N - 1) / 2) * SP, 0, (j - (N - 1) / 2) * SP);
+
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), new THREE.MeshStandardMaterial({ color: 0x24312b, roughness: 1 }));
+ground.rotation.x = -Math.PI / 2; ground.position.y = -0.02; ground.receiveShadow = true; scene.add(ground);
+const asphalt = new THREE.Mesh(new THREE.PlaneGeometry(EXT * 2 + 2, EXT * 2 + 2), new THREE.MeshStandardMaterial({ color: 0x2b303c, roughness: .95 }));
+asphalt.rotation.x = -Math.PI / 2; asphalt.receiveShadow = true; scene.add(asphalt);
+
+// lane dashes
+{
+  const dashes = [];
+  for (let g = 0; g < N - 1; g++) {
+    const c = (g + 0.5 - (N - 1) / 2) * SP;
+    for (let s = -EXT; s < EXT; s += 0.9) { dashes.push([c, s, 0]); dashes.push([s, c, 1]); }
+  }
+  const dm = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.07, 0.42), new THREE.MeshStandardMaterial({ color: 0xd9c47a, emissive: 0x3a3010, roughness: .8 }), dashes.length);
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
+  dashes.forEach(([x, z, r], k) => { e.set(-Math.PI / 2, 0, r ? Math.PI / 2 : 0); q.setFromEuler(e); m4.compose(new THREE.Vector3(x, 0.012, z), q, new THREE.Vector3(1, 1, 1)); dm.setMatrixAt(k, m4); });
+  dm.receiveShadow = true; scene.add(dm);
+}
+
+// textures
+function windowTextures() {
+  const S = 256, cells = 4, cs = S / cells;
+  const a = document.createElement('canvas'); a.width = a.height = S; const ga = a.getContext('2d');
+  const e = document.createElement('canvas'); e.width = e.height = S; const ge = e.getContext('2d');
+  ga.fillStyle = '#ffffff'; ga.fillRect(0, 0, S, S);
+  ge.fillStyle = '#000'; ge.fillRect(0, 0, S, S);
+  const r = mulberry32(7);
+  for (let y = 0; y < cells; y++) for (let x = 0; x < cells; x++) {
+    const px = x * cs + cs * .2, py = y * cs + cs * .22, w = cs * .6, h = cs * .52;
+    ga.fillStyle = '#566078'; ga.fillRect(px, py, w, h);
+    if (r() < 0.62) { const v = 170 + r() * 85; ge.fillStyle = `rgb(${v},${v * .86 | 0},${v * .62 | 0})`; ge.fillRect(px, py, w, h); }
+  }
+  const map = new THREE.CanvasTexture(a), em = new THREE.CanvasTexture(e);
+  for (const t of [map, em]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; }
+  return { map, em };
+}
+const WT = windowTextures();
+
+function blueprintTexture() {
+  const S = 256, c = document.createElement('canvas'); c.width = c.height = S; const g = c.getContext('2d');
+  g.clearRect(0, 0, S, S);
+  g.strokeStyle = 'rgba(160,230,255,0.35)'; g.lineWidth = 2;
+  for (let k = 1; k < 8; k++) { const p = k * S / 8; g.beginPath(); g.moveTo(p, 8); g.lineTo(p, S - 8); g.stroke(); g.beginPath(); g.moveTo(8, p); g.lineTo(S - 8, p); g.stroke(); }
+  g.strokeStyle = '#bff0ff'; g.lineWidth = 12; g.strokeRect(10, 10, S - 20, S - 20);
+  g.strokeStyle = '#ffffff'; g.lineWidth = 6; g.strokeRect(70, 60, 116, 136);
+  g.beginPath(); for (const y of [100, 130, 160]) { g.moveTo(90, y); g.lineTo(166, y); } g.stroke();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const BP = blueprintTexture();
+
+function makeLabel(text, fg = '#ffffff', bg = 'rgba(10,16,36,0.85)', border = null) {
+  const c = document.createElement('canvas'); const g = c.getContext('2d');
+  const font = '800 66px Inter, sans-serif'; g.font = font;
+  const tw = Math.ceil(g.measureText(text).width);
+  c.width = tw + 80; c.height = 112;
+  g.font = font;
+  g.fillStyle = bg; g.beginPath(); g.roundRect(4, 4, c.width - 8, c.height - 8, 50); g.fill();
+  if (border) { g.strokeStyle = border; g.lineWidth = 6; g.stroke(); }
+  g.fillStyle = fg; g.textBaseline = 'middle'; g.textAlign = 'center'; g.fillText(text, c.width / 2, c.height / 2 + 3);
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false, toneMapped: false }));
+  sp.userData.aspect = c.width / c.height; sp.renderOrder = 10; sp.visible = false;
+  scene.add(sp); return sp;
+}
+function placeLabel(sp, pos, opacity, size = 0.85) {
+  sp.visible = opacity > 0.01;
+  if (!sp.visible) return;
+  sp.position.copy(pos);
+  const d = camera.position.distanceTo(pos);
+  const s = size * clamp(d / 18, 0.7, 2.6);
+  sp.scale.set(s * sp.userData.aspect, s, 1);
+  sp.material.opacity = opacity;
+}
+
+// lots
+const all = [];
+for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) all.push({ i, j, p: lotPos(i, j) });
+const isSpecial = l => (l.i === 1 && l.j === 1) || (l.i === 7 && l.j === 1);
+const sidewalkMat = new THREE.MeshStandardMaterial({ color: 0x5b6273, roughness: .9 });
+const sidewalkGeo = new THREE.BoxGeometry(LOT + 0.35, 0.1, LOT + 0.35);
+for (const l of all) { const s = new THREE.Mesh(sidewalkGeo, sidewalkMat); s.position.copy(l.p).setY(0.05); s.receiveShadow = true; scene.add(s); }
+
+const pool = all.filter(l => !isSpecial(l));
+for (let k = pool.length - 1; k > 0; k--) { const r = Math.floor(rnd() * (k + 1)); [pool[k], pool[r]] = [pool[r], pool[k]]; }
+const incumbents = pool.slice(0, 29), newLots = pool.slice(29); // 50 new lots -> survival lands on 90/80/50%
+
+const boxGeo = new THREE.BoxGeometry(1, 1, 1); boxGeo.translate(0, 0.5, 0);
+const roofMat = new THREE.MeshStandardMaterial({ color: 0x3b4150, roughness: .9 });
+const allBuildingMats = [];
+function makeBuilding(color, w, d) {
+  const map = WT.map.clone(), em = WT.em.clone(); map.needsUpdate = em.needsUpdate = true;
+  const m = new THREE.MeshStandardMaterial({ color, map, emissive: 0xffcf8a, emissiveMap: em, emissiveIntensity: 1, roughness: .78, metalness: .05 });
+  const mesh = new THREE.Mesh(boxGeo, [m, m, roofMat, roofMat, m, m]);
+  mesh.castShadow = true; mesh.receiveShadow = true;
+  mesh.userData = { m, base: new THREE.Color(color), w, d };
+  allBuildingMats.push(m);
+  return mesh;
+}
+function sizeBuilding(mesh, w, h, d) {
+  mesh.scale.set(w, Math.max(h, 0.001), d);
+  const m = mesh.userData.m;
+  m.map.repeat.set(w / 2, h / 2); m.emissiveMap.repeat.set(w / 2, h / 2);
+}
+
+// incumbents
+const INC_COLORS = [0x7d8aa6, 0x8e99b3, 0x6b7895, 0xa0a9bd, 0x8a8f9e];
+for (const L of incumbents) {
+  L.w = 1.6 + rnd() * 0.45; L.d = 1.6 + rnd() * 0.45; L.h = 1.4 + rnd() * 3.6;
+  L.mesh = makeBuilding(INC_COLORS[Math.floor(rnd() * INC_COLORS.length)], L.w, L.d);
+  L.mesh.position.copy(L.p); sizeBuilding(L.mesh, L.w, L.h, L.d); scene.add(L.mesh);
+}
+
+// specials: bank + warehouse
+const bankPos = lotPos(1, 1), whPos = lotPos(7, 1);
+{
+  const g = new THREE.Group(); g.position.copy(bankPos);
+  const stone = new THREE.MeshStandardMaterial({ color: 0xe9e2d0, roughness: .7 });
+  const steps = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.25, 2.3), stone); steps.position.y = 0.125;
+  const body = new THREE.Mesh(new THREE.BoxGeometry(1.9, 1.5, 1.5), stone); body.position.set(0, 1.0, -0.2);
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(2.15, 0.22, 2.0), stone); roof.position.set(0, 1.86, 0);
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(0.62, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x9fd6c4, roughness: .4, metalness: .4 })); dome.position.y = 1.97;
+  g.add(steps, body, roof, dome);
+  for (let k = 0; k < 4; k++) { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1.5, 12), stone); c.position.set(-0.75 + k * 0.5, 1.0, 0.82); g.add(c); }
+  g.traverse(o => { if (o.isMesh) { o.castShadow = o.receiveShadow = true; } });
+  scene.add(g);
+}
+const whDoors = [];
+{
+  const g = new THREE.Group(); g.position.copy(whPos);
+  const body = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.35, 2.3), new THREE.MeshStandardMaterial({ color: 0x9a7350, roughness: .85 })); body.position.y = 0.675;
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.12, 2.4), new THREE.MeshStandardMaterial({ color: 0x4c4f58, roughness: .8 })); roof.position.y = 1.4;
+  g.add(body, roof);
+  for (let k = 0; k < 3; k++) {
+    const dm = new THREE.MeshStandardMaterial({ color: 0x2a2a30, emissive: 0xff9a3c, emissiveIntensity: 0.2 });
+    const d = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.75), dm); d.position.set(-0.8 + k * 0.8, 0.45, 1.155); g.add(d); whDoors.push(dm);
+  }
+  g.traverse(o => { if (o.isMesh) { o.castShadow = o.receiveShadow = true; } });
+  scene.add(g);
+}
+const lblBank = makeLabel('LENDERS', '#ffc145');
+const lblWh = makeLabel('SUPPLIERS', '#5ad1ff');
+
+// new lots
+const SHOP = [0xff7a59, 0xffc145, 0x5ad1a1, 0x4ea8ff, 0xc084fc, 0xff6fa5, 0x7ee081, 0xffd36e, 0x62d3e6];
+const heroTarget = new THREE.Vector3(1.45, 0, 5.8);
+newLots.sort((a, b) => a.p.distanceTo(heroTarget) - b.p.distanceTo(heroTarget));
+const hero = newLots[0];
+const nL = newLots.length;
+const scaffGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1)); scaffGeo.translate(0, 0.5, 0);
+const beamGeo = new THREE.CylinderGeometry(0.07, 0.07, 1, 8, 1, true); beamGeo.translate(0, 0.5, 0);
+const tileGeo = new THREE.PlaneGeometry(LOT, LOT); tileGeo.rotateX(-Math.PI / 2);
+const awnGeo = new THREE.BoxGeometry(1, 0.06, 0.42);
+
+newLots.forEach((L, r) => {
+  L.appB = r < 6 ? 0.12 + r * 0.13 : r < 30 ? 1.0 + (r - 6) / 24 * 0.85 + hash(r) * 0.1 : 2.0 + (r - 30) / (nL - 30) * 6.4;
+  const g = hash(r * 3.3 + 1);
+  L.openB = g < 0.25 ? 9.12 + hash(r + 9) * 0.6 : g < 0.7 ? 10.08 + hash(r + 19) * 0.55 : 11.04 + hash(r + 29) * 0.35;
+  L.w = 1.3 + rnd() * 0.6; L.d = 1.3 + rnd() * 0.6; L.h0 = 0.9 + rnd() * 1.1;
+  L.color = SHOP[r % SHOP.length];
+  L.mesh = makeBuilding(L.color, L.w, L.d); L.mesh.position.copy(L.p); L.mesh.visible = false; scene.add(L.mesh);
+  L.tileMat = new THREE.MeshBasicMaterial({ map: BP, color: 0x7fdcff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+  L.tile = new THREE.Mesh(tileGeo, L.tileMat); L.tile.position.copy(L.p).setY(0.115); scene.add(L.tile);
+  L.beamMat = new THREE.MeshBasicMaterial({ color: 0x8fe6ff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+  L.beam = new THREE.Mesh(beamGeo, L.beamMat); L.beam.position.copy(L.p); scene.add(L.beam);
+  L.scaffMat = new THREE.LineBasicMaterial({ color: 0xffb547, transparent: true, opacity: 0 });
+  L.scaff = new THREE.LineSegments(scaffGeo, L.scaffMat); L.scaff.position.copy(L.p); L.scaff.scale.set(L.w, L.h0, L.d); L.scaff.visible = false; scene.add(L.scaff);
+  L.awn = new THREE.Mesh(awnGeo, new THREE.MeshStandardMaterial({ color: SHOP[(r + 3) % SHOP.length], roughness: .6 }));
+  L.awn.castShadow = true; L.awn.position.set(L.p.x, 0.62, L.p.z + L.d / 2 + 0.2); L.awn.rotation.x = 0.28; L.awn.visible = false; scene.add(L.awn);
+  L.g6 = 0; L.g1 = 0; L.g5 = 0; L.closeB = null;
+});
+
+// fates (BLS-shaped: ~20% closed by year 1, ~50% by year 5)
+{
+  const order = newLots.slice();
+  for (let k = order.length - 1; k > 0; k--) { const r = Math.floor(rnd() * (k + 1)); [order[k], order[r]] = [order[r], order[k]]; }
+  const n6 = Math.round(nL * 0.1), n1 = Math.round(nL * 0.2), n5 = Math.round(nL * 0.5);
+  const early = order.filter(L => L.openB < 11);
+  const c6 = early.slice(0, n6);
+  const rest = order.filter(L => !c6.includes(L));
+  const c1 = rest.slice(0, n1 - n6), c5 = rest.slice(n1 - n6, n5 - n6);
+  c6.forEach((L, k) => L.closeB = 11.35 + k / n6 * 0.45);
+  c1.forEach((L, k) => L.closeB = 12.15 + k / c1.length * 0.55);
+  c5.forEach((L, k) => L.closeB = 13.1 + k / c5.length * 0.6);
+  const survivors = rest.slice(n5 - n6);
+  survivors.forEach(L => { L.g6 = hash(L.i * 9 + L.j) < 0.5 ? L.h0 * 0.45 : 0; L.g1 = L.h0 * 0.3; L.g5 = L.h0 * (0.4 + rnd() * 0.6); });
+  c1.concat(c5).forEach(L => { L.g6 = hash(L.i * 5 + L.j) < 0.4 ? L.h0 * 0.3 : 0; });
+  const hg = survivors.slice(0, 5);
+  hg.forEach(L => { L.hg = true; L.g1 += 3.6 + rnd() * 2.2; L.g5 += 2.5 + rnd() * 3; L.lbl = makeLabel('+ JOBS', '#7dffb2', 'rgba(8,30,20,0.85)', '#7dffb2'); });
+  for (const L of newLots) if (L.closeB) L.lblC = makeLabel('CLOSED', '#ffffff', 'rgba(200,40,50,0.92)');
+  window.__fates = { n: nL, c6: n6, c1: n1, c5: n5 };
+}
+
+// trees (year 5)
+const trees = [];
+{
+  const cone = new THREE.ConeGeometry(0.32, 0.9, 8); cone.translate(0, 0.75, 0);
+  const trunk = new THREE.CylinderGeometry(0.05, 0.06, 0.35, 6); trunk.translate(0, 0.175, 0);
+  const coneM = new THREE.MeshStandardMaterial({ color: 0x3f9d5a, roughness: .9 }), trunkM = new THREE.MeshStandardMaterial({ color: 0x6b4a32 });
+  for (const L of all) {
+    for (let c = 0; c < 2; c++) {
+      if (hash(L.i * 31 + L.j * 7 + c) < 0.45) continue;
+      const sx = c ? 1 : -1;
+      const g = new THREE.Group(); g.add(new THREE.Mesh(cone, coneM), new THREE.Mesh(trunk, trunkM));
+      g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+      g.position.set(L.p.x + sx * (LOT / 2 + 0.05), 0.1, L.p.z + LOT / 2 + 0.05);
+      g.userData.t0 = 13.15 + hash(L.i * 3 + L.j * 11 + c) * 0.55; g.scale.setScalar(0.001); g.visible = false;
+      scene.add(g); trees.push(g);
+    }
+  }
+}
+
+// 30-day market signals (anchored after camera is defined; see placeSignals)
+const signals = [
+  { lbl: makeLabel('▲ RENT', '#ff8a8a'), d: 0.0, ndc: [-0.40, 0.18] },
+  { lbl: makeLabel('▲ WAGES', '#ff8a8a'), d: 0.12, ndc: [0.38, 0.24] },
+  { lbl: makeLabel('▲ EQUIPMENT', '#ff8a8a'), d: 0.24, ndc: [0.0, 0.08] },
+  { lbl: makeLabel('▼ PRICES', '#7dffb2'), d: 0.36, ndc: [-0.38, -0.04] },
+  { lbl: makeLabel('▼ PRICES', '#7dffb2'), d: 0.48, ndc: [0.40, -0.10] },
+];
+
+// flows: credit, orders, payments (spheres) + supply crates (boxes)
+const FLOW = [
+  { n: 60,  color: new THREE.Color(0xffb547).multiplyScalar(2.2), on: b => ramp(b, 2.0, 2.3) * (1 - 0.6 * ramp(b, 5.8, 6.5)) * (1 - ramp(b, 9.5, 10.5)), to: 'bank', size: 0.13 },
+  { n: 60,  color: new THREE.Color(0x5ad1ff).multiplyScalar(2.2), on: b => ramp(b, 3.0, 3.3) * (1 - 0.6 * ramp(b, 5.8, 6.5)), to: 'wh', size: 0.13 },
+  { n: 170, color: new THREE.Color(0x7dffb2).multiplyScalar(2.0), on: b => ramp(b, 4.0, 4.3) * (b < 6 ? 1 : 0.55 + 0.45 * ramp(b, 9, 11)), to: 'lot', size: 0.11 },
+];
+const sphereGeo = new THREE.SphereGeometry(1, 10, 8);
+let slotCount = 0;
+for (const f of FLOW) { f.base = slotCount; slotCount += f.n; }
+const flowMesh = new THREE.InstancedMesh(sphereGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }), slotCount);
+flowMesh.frustumCulled = false; scene.add(flowMesh);
+for (const f of FLOW) for (let k = 0; k < f.n; k++) flowMesh.setColorAt(f.base + k, f.color);
+const CRATES = 90;
+const crateMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.3, 0.24, 0.3), new THREE.MeshStandardMaterial({ color: 0xffa14a, emissive: 0xff7a1a, emissiveIntensity: 0.5, roughness: .6 }), CRATES);
+crateMesh.castShadow = true; crateMesh.frustumCulled = false; scene.add(crateMesh);
+const crateOn = b => ramp(b, 5.0, 5.3) * (b < 6 ? 1 : 0.5 + 0.5 * ramp(b, 9, 11));
+
+const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _v = new THREE.Vector3(), _s = new THREE.Vector3(), _a = new THREE.Vector3(), _c = new THREE.Vector3();
+function arcPoint(out, from, to, f, hgt) { out.lerpVectors(from, to, f); out.y = lerp(from.y, to.y, f) + Math.sin(Math.PI * f) * hgt; return out; }
+function pickLot(seed, b) { const L = newLots[Math.floor(hash(seed) * nL)]; return L.appB <= b && !(L.closeB && b > L.closeB) ? L : null; }
+
+function updateFlows(t, b) {
+  for (let fi = 0; fi < FLOW.length; fi++) {
+    const f = FLOW[fi], inten = f.on(b);
+    for (let k = 0; k < f.n; k++) {
+      const id = f.base + k, seed = id * 1.618 + fi * 97;
+      const P = 1.5 + hash(seed) * 1.3, ph = hash(seed + 5);
+      const u = t / P + ph, cyc = Math.floor(u), pr = u - cyc;
+      let show = hash(seed + 11) < inten;
+      const A = show && pickLot(seed * 3 + cyc * 13.7, b);
+      let to = null;
+      if (A) {
+        if (f.to === 'bank') to = bankPos; else if (f.to === 'wh') to = whPos;
+        else { const B = pickLot(seed * 7 + cyc * 3.1 + 1, b); to = B && B !== A ? B.p : null; }
+      }
+      if (!A || !to) { _m.makeScale(0, 0, 0); flowMesh.setMatrixAt(id, _m); continue; }
+      _a.copy(A.p).setY(0.6); _c.copy(to).setY(0.9);
+      arcPoint(_v, _a, _c, pr, 1.2 + _a.distanceTo(_c) * 0.22);
+      const sc = f.size * Math.pow(Math.sin(Math.PI * pr), 0.4) * (0.6 + 0.4 * inten);
+      _m.compose(_v, _q.identity(), _s.set(sc, sc, sc)); flowMesh.setMatrixAt(id, _m);
+    }
+  }
+  flowMesh.instanceMatrix.needsUpdate = true;
+  const ci = crateOn(b);
+  for (let k = 0; k < CRATES; k++) {
+    const seed = 5000 + k * 2.71;
+    const P = 2.2 + hash(seed) * 1.4, u = t / P + hash(seed + 3), cyc = Math.floor(u), pr = u - cyc;
+    const L = hash(seed + 9) < ci ? pickLot(seed * 5 + cyc * 7.7, b) : null;
+    if (!L) { _m.makeScale(0, 0, 0); crateMesh.setMatrixAt(k, _m); continue; }
+    _a.copy(whPos).setY(0.2); _c.copy(L.p).setY(0.25);
+    arcPoint(_v, _a, _c, pr, 0.5 + _a.distanceTo(_c) * 0.06);
+    const sc = Math.min(1, Math.sin(Math.PI * pr) * 4);
+    _q.setFromAxisAngle(_s.set(0, 1, 0), pr * 4 + k);
+    _m.compose(_v, _q, _s.set(sc, sc, sc)); crateMesh.setMatrixAt(k, _m);
+  }
+  crateMesh.instanceMatrix.needsUpdate = true;
+}
+
+// ---------- world update ----------
+const C_NIGHT_TOP = new THREE.Color(0x050816), C_NIGHT_BOT = new THREE.Color(0x1b2346);
+const C_DAY_TOP = new THREE.Color(0x3f7fd0), C_DAY_BOT = new THREE.Color(0xf2c99c);
+const C_GRAY = new THREE.Color(0x4b505c), C_RED = new THREE.Color(0xff3b4a);
+const _col = new THREE.Color();
+
+function updateWorld(t, b) {
+  const day = smooth(ramp(b, 7.6, 8.9));
+  skyMat.uniforms.top.value.copy(C_NIGHT_TOP).lerp(C_DAY_TOP, day);
+  skyMat.uniforms.bot.value.copy(C_NIGHT_BOT).lerp(C_DAY_BOT, day);
+  scene.fog.color.copy(skyMat.uniforms.bot.value);
+  hemi.intensity = lerp(0.45, 1.9, day);
+  hemi.color.set(0x9fb4ff).lerp(_col.set(0xdbe8ff), day);
+  sun.intensity = lerp(0.75, 3.6, day);
+  sun.color.set(0x8fa6ff).lerp(_col.set(0xffefd6), day);
+  const winI = lerp(1.7, 0.35, day);
+  bloom.strength = lerp(0.85, 0.32, day);
+
+  for (const L of incumbents) L.mesh.userData.m.emissiveIntensity = winI;
+  whDoors.forEach(m => m.emissiveIntensity = 0.25 + 2.2 * ramp(b, 5.0, 5.4) * (1 - 0.5 * day));
+
+  for (const L of newLots) {
+    // application tile + beam
+    const ap = b - L.appB;
+    const o = ramp(b, L.openB, L.openB + 0.35);
+    const tileOn = ramp(ap, 0, 0.12) * (1 - ramp(b, L.openB, L.openB + 0.3));
+    L.tileMat.opacity = tileOn * (0.6 + 0.25 * Math.sin(t * 3 + L.i + L.j * 2)) * lerp(1, 0.75, day);
+    L.tile.visible = L.tileMat.opacity > 0.01;
+    const beam = ap > 0 ? Math.exp(-ap * 2.6) : 0;
+    L.beamMat.opacity = beam * 0.9;
+    L.beam.visible = beam > 0.01;
+    L.beam.scale.set(1, 16 * clamp(ap * 6), 1);
+
+    // scaffolding while waiting on permits
+    const sc = ramp(b, 9.0 + hash(L.i + L.j * 9) * 0.3, 9.3 + hash(L.i + L.j * 9) * 0.3) * (1 - ramp(b, L.openB - 0.05, L.openB + 0.15));
+    L.scaff.visible = sc > 0.01 && L.openB > 9.9;
+    L.scaffMat.opacity = sc;
+
+    // building
+    const hs = L.h0 + L.g6 * smooth(ramp(b, 11.25, 11.85)) + L.g1 * smooth(ramp(b, 12.15, 12.85)) + L.g5 * smooth(ramp(b, 13.1, 13.9));
+    let h = hs * easeOutBack(o);
+    let w = L.w, d = L.d;
+    if (L.hg) { const gw = smooth(ramp(b, 12.15, 12.85)); w = lerp(L.w, 2.0, gw); d = lerp(L.d, 2.0, gw); }
+    let cl = 0, fl = 0;
+    if (L.closeB) {
+      cl = smooth(ramp(b, L.closeB + 0.05, L.closeB + 0.45));
+      fl = Math.max(0, 1 - Math.abs(b - L.closeB - 0.08) / 0.14);
+      h = lerp(h, 0.32, cl);
+    }
+    L.mesh.visible = o > 0.001;
+    if (L.mesh.visible) {
+      sizeBuilding(L.mesh, w, h, d);
+      const m = L.mesh.userData.m;
+      m.color.copy(L.mesh.userData.base).lerp(C_RED, fl * (1 - cl)).lerp(C_GRAY, cl);
+      m.emissiveIntensity = winI * (1 - cl) * (L.hg ? 1.4 : 1);
+    }
+    L.awn.visible = o > 0.6 && cl < 0.5;
+    L.awn.scale.set(w * 0.92 * easeOut(ramp(o, 0.6, 1)), 1, 1);
+    L.awn.position.z = L.p.z + d / 2 + 0.2;
+
+    if (L.lblC) { const lo = ramp(b, L.closeB, L.closeB + 0.08) * (1 - ramp(b, L.closeB + 0.5, L.closeB + 0.65)); placeLabel(L.lblC, _v.copy(L.p).setY(hs + 0.9), lo, 0.62); }
+    if (L.lbl) { const lo = ramp(b, 12.3, 12.45) * (1 - ramp(b, 12.92, 13.05)); placeLabel(L.lbl, _v.copy(L.p).setY(h + 1.0 + (b - 12.3) * 0.6), lo, 0.72); }
+  }
+
+  for (const tr of trees) { const f = easeOutBack(ramp(b, tr.userData.t0, tr.userData.t0 + 0.3)); tr.visible = f > 0.001; tr.scale.setScalar(Math.max(f, 0.001)); }
+
+  placeLabel(lblBank, _v.copy(bankPos).setY(2.7), ramp(b, 2.05, 2.25) * (1 - ramp(b, 5.8, 6.1)), 0.8);
+  placeLabel(lblWh, _v.copy(whPos).setY(2.2), ramp(b, 3.05, 3.25) * (1 - ramp(b, 5.8, 6.1)), 0.8);
+  for (const s of signals) { const lo = ramp(b, 10.1 + s.d, 10.25 + s.d) * (1 - ramp(b, 10.88, 11.0)); placeLabel(s.lbl, _v.copy(s.pos).setY(s.pos.y + (b - 10.1) * 0.5), lo, 0.7); }
+
+  updateFlows(t, b);
+}
+
+// ---------- camera (Catmull-Rom through per-beat keys) ----------
+const hp = hero.p;
+// [radius, elevation°, azimuth°, targetX, targetY, targetZ] at beat -1 .. 15
+const KEYS = [
+  [46, 40, -10, 0, 0, 0],            // -1 intro
+  [8.5, 24, 28, hp.x, 0.6, hp.z],    // 0  hero lot
+  [15, 30, 48, hp.x * .6, 0.5, hp.z * .5], // 1  filings spike
+  [17, 50, 40, bankPos.x, 1.2, bankPos.z], // 2 lenders
+  [16, 32, 84, whPos.x, 1.0, whPos.z],    // 3 suppliers
+  [22, 44, 100, 0, 0.5, 0],          // 4  payments
+  [15, 30, 128, whPos.x * .6, 0.5, whPos.z * .5],     // 5 crates
+  [46, 56, 150, 0, 0, 0],            // 6  unchanged (wide)
+  [40, 48, 172, 0, 0, 0],            // 7  only on paper
+  [34, 38, 196, 0, 0.5, 0],          // 8  24h sunrise
+  [20, 26, 218, 1, 0.8, 1],          // 9  7 days
+  [25, 32, 240, 0, 1, 0],            // 10 30 days
+  [26, 34, 262, 0, 1, 0],            // 11 6 months
+  [30, 30, 286, 0, 1.5, 0],          // 12 1 year
+  [33, 28, 310, 0, 1.5, 0],          // 13 5 years
+  [42, 38, 338, 0, 1, 0],            // 14 outro
+  [50, 44, 362, 0, 1, 0],            // 15 end
+];
+function cr(p0, p1, p2, p3, f) { const f2 = f * f, f3 = f2 * f; return 0.5 * ((2 * p1) + (-p0 + p2) * f + (2 * p0 - 5 * p1 + 4 * p2 - p3) * f2 + (-p0 + 3 * p1 - 3 * p2 + p3) * f3); }
+const _tgt = new THREE.Vector3();
+function updateCamera(b) {
+  // each beat's framing is reached ~40% into that beat, so the shot holds while its caption is read
+  const u = clamp(b + 0.6, 0, KEYS.length - 1.0001), k = Math.floor(u), f = u - k;
+  const K = i => KEYS[clamp(i, 0, KEYS.length - 1)];
+  const v = [0, 1, 2, 3, 4, 5].map(c => cr(K(k - 1)[c], K(k)[c], K(k + 1)[c], K(k + 2)[c], f));
+  const [r, el, az] = [v[0], v[1] * Math.PI / 180, v[2] * Math.PI / 180];
+  _tgt.set(v[3], v[4], v[5]);
+  camera.position.set(_tgt.x + r * Math.cos(el) * Math.sin(az), _tgt.y + r * Math.sin(el), _tgt.z + r * Math.cos(el) * Math.cos(az));
+  camera.lookAt(_tgt);
+  sky.position.copy(camera.position);
+}
+
+// pick lots that project near the wanted screen spots at the 30-day beat
+{
+  updateCamera(10.5); camera.updateMatrixWorld();
+  const used = new Set();
+  for (const sg of signals) {
+    let best = null, bd = 1e9;
+    for (const L of all) {
+      if (used.has(L)) continue;
+      const v = L.p.clone().setY(2.6).project(camera);
+      const dd = Math.hypot(v.x - sg.ndc[0], v.y - sg.ndc[1]);
+      if (dd < bd) { bd = dd; best = L; }
+    }
+    used.add(best); sg.pos = best.p.clone().setY(2.6);
+  }
+}
+
+// ---------- post ----------
+const rt = new THREE.WebGLRenderTarget(W, H, { samples: 4, type: THREE.HalfFloatType });
+const composer = new EffectComposer(renderer, rt);
+composer.setPixelRatio(1); composer.setSize(W, H);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(W / 2, H / 2), 0.8, 0.45, 0.82);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+// ---------- overlay ----------
+const $ = id => document.getElementById(id);
+const el = { num: $('num'), unit: $('unit'), counter: $('counter'), phase: $('phase'), barFill: $('barFill'), bar: $('bar'), chip: $('chip'), chipLabel: $('chipLabel'),
+  chipVal: $('chipVal'), cap: $('cap'), capBox: $('capBox'), intro: $('intro'), hud: $('hud'), sci: $('science'), sci1: $('sci1'), sci2: $('sci2'), sources: $('sources') };
+const tickX = i => (i <= 7 ? i / 7 * 0.47 : 0.53 + (i - 8) / 5 * 0.47) * 780;
+const ticks = BEATS.map((_, i) => { const d = document.createElement('div'); d.className = 'tick'; d.style.left = tickX(i) + 'px'; el.bar.appendChild(d); return d; });
+{ const g = document.createElement('div'); g.className = 'tick gap'; g.style.left = 0.5 * 780 + 'px'; el.bar.appendChild(g); }
+
+const pad = n => String(n).padStart(2, '0');
+function counterText(i, roll) {
+  const B = BEATS[i], P = BEATS[Math.max(0, i - 1)];
+  if (B.k === 'm') { const m = Math.round(lerp(P.v, B.v, roll)); return [`${pad(Math.floor(m / 60))}:${pad(m % 60)}`, '']; }
+  let from, to, unit1, unitN;
+  switch (i) {
+    case 8:  from = 1; to = 24; unit1 = 'HOUR'; unitN = 'HOURS'; break;
+    case 9:  from = 1; to = 7; unit1 = 'DAY'; unitN = 'DAYS'; break;
+    case 10: from = 7; to = 30; unit1 = 'DAY'; unitN = 'DAYS'; break;
+    case 11: from = 1; to = 6; unit1 = 'MONTH'; unitN = 'MONTHS'; break;
+    case 12: if (roll >= 1) return ['1', 'YEAR']; from = 6; to = 12; unit1 = 'MONTH'; unitN = 'MONTHS'; break;
+    default: from = 1; to = 5; unit1 = 'YEAR'; unitN = 'YEARS';
+  }
+  const n = Math.round(lerp(from, to, roll));
+  return [String(n), n === 1 ? unit1 : unitN];
+}
+const APPS = [0, 0.35, 1.0, 1.4, 1.75, 2.05, 2.6, 3.0, 5.6, 7.3, 8.0, 8.1];
+let capIdx = -2, capWords = [];
+function setCaption(i) {
+  capIdx = i;
+  el.capBox.innerHTML = '';
+  capWords = [];
+  if (i < 0) return;
+  let hl = false;
+  BEATS[i].words.forEach((w, k) => {
+    let txt = w; const startHl = txt.startsWith('['); if (startHl) { hl = true; txt = txt.slice(1); }
+    let endHl = false; if (/\][.,]?$/.test(txt)) { endHl = true; txt = txt.replace(']', ''); }
+    const s = document.createElement('span'); s.className = 'w' + (hl ? ' hl' : ''); s.textContent = txt + (k < BEATS[i].words.length - 1 ? ' ' : '');
+    el.capBox.appendChild(s); capWords.push(s);
+    if (endHl) hl = false;
+  });
+}
+
+function updateOverlay(t, b) {
+  // intro
+  const io = 1 - ramp(t, INTRO - 0.55, INTRO);
+  el.intro.style.opacity = io; el.intro.style.display = io > 0.001 ? 'flex' : 'none';
+  el.intro.style.transform = `scale(${1 + 0.04 * (1 - io)})`;
+  const outro = t >= OUTRO_START, ot = t - OUTRO_START;
+  el.hud.style.opacity = clamp(1 - io * 1.2) * (outro ? lerp(1, 0.55, ramp(ot, 0, 0.6)) : 1);
+
+  // counter
+  const i = clamp(Math.floor(Math.max(b, 0)), 0, BEATS.length - 1);
+  const local = t < INTRO ? 0 : Math.min(t - BEATS[i].start, 99);
+  const roll = i === 0 ? 1 : smooth(ramp(local, 0, 0.6));
+  const [num, unit] = counterText(i, roll);
+  el.num.textContent = num; el.unit.textContent = unit; el.unit.style.display = unit ? '' : 'none';
+  const pop = roll < 1 && roll > 0 ? 0.07 * Math.sin(Math.PI * roll) : (i === 0 ? 0.07 * Math.sin(Math.PI * ramp(t - INTRO, 0, 0.4)) : 0);
+  el.counter.style.transform = `scale(${1 + pop})`;
+  el.phase.textContent = b < 8 ? 'THE FIRST HOUR' : 'HOURS TO YEARS LATER';
+
+  // progress
+  const prog = b < 0 ? 0 : b >= BEATS.length ? 780 : lerp(tickX(i), i + 1 < BEATS.length ? tickX(i + 1) : 780, smooth(ramp(local, 0, BEATS[i].d)));
+  el.barFill.style.width = (t < INTRO ? 0 : Math.max(tickX(i), b >= BEATS.length ? 780 : tickX(i) + (prog - tickX(i)))) + 'px';
+  ticks.forEach((d, k) => d.classList.toggle('on', t >= INTRO && k <= i));
+
+  // stat chip
+  if (b < 11) {
+    el.chipLabel.textContent = 'APPLICATIONS FILED';
+    const u = clamp(b, 0, APPS.length - 1.001), k = Math.floor(u), f = smooth(u - k);
+    const v = Math.round(lerp(APPS[k], APPS[k + 1], f) * 1e6 / 7) * 7;
+    el.chipVal.textContent = v.toLocaleString('en-US');
+  } else {
+    el.chipLabel.textContent = 'NEW BUSINESSES STILL OPEN';
+    let closed = 0; for (const L of newLots) if (L.closeB) closed += ramp(b, L.closeB + 0.05, L.closeB + 0.3);
+    el.chipVal.textContent = Math.round(100 * (1 - closed / nL)) + '%';
+  }
+
+  // captions
+  const ci = t < INTRO || outro ? -1 : i;
+  if (ci !== capIdx) setCaption(ci);
+  if (ci >= 0) {
+    const B = BEATS[ci], lt = t - B.start;
+    const out = ramp(lt, B.d - 0.28, B.d);
+    el.cap.style.opacity = 1 - out;
+    el.capBox.style.transform = `translateY(${(1 - easeOut(ramp(lt, 0, 0.3))) * 30}px)`;
+    el.capBox.style.opacity = ramp(lt, 0, 0.18);
+    const per = Math.min(0.11, 1.1 / capWords.length);
+    capWords.forEach((s, k) => { const f = ramp(lt, 0.08 + k * per, 0.08 + k * per + 0.18); s.style.opacity = f; s.style.transform = `translateY(${(1 - easeOut(f)) * 22}px) scale(${0.9 + 0.1 * easeOutBack(f)})`; });
+  } else el.cap.style.opacity = 0;
+
+  // science outro
+  el.sci.style.display = outro ? '' : 'none';
+  if (outro) {
+    const a = ramp(ot, 0.2, 0.7) * (1 - ramp(ot, 4.6, 5.0)), c = ramp(ot, 5.0, 5.5) * (1 - ramp(ot, OUTRO - 0.5, OUTRO));
+    el.sci1.style.opacity = a; el.sci1.style.transform = `translateY(${(1 - easeOut(a)) * 40}px)`;
+    el.sci2.style.opacity = c; el.sci2.style.transform = `translateY(${(1 - easeOut(c)) * 40}px)`;
+    el.sources.style.opacity = ramp(ot, 0.6, 1.2) * (1 - ramp(ot, OUTRO - 0.5, OUTRO));
+  }
+}
+
+// ---------- entry points ----------
+window.renderAt = function (t) {
+  const b = beatPos(t);
+  updateCamera(b);
+  updateWorld(t, b);
+  updateOverlay(t, b);
+  composer.render();
+};
+window.__timeline = { INTRO, OUTRO_START, TOTAL, beats: BEATS.map(b => ({ start: b.start, d: b.d, cap: b.cap })) };
+
+await document.fonts.ready;
+window.renderAt(0);
+window.__ready = true;
+
+if (!location.search.includes('render')) {
+  const t0 = performance.now();
+  const loop = () => { window.renderAt(((performance.now() - t0) / 1000) % TOTAL); requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>
