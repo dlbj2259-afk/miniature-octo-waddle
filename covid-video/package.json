@@ -1,0 +1,14 @@
+{
+  "name": "covid-vaccines-video",
+  "private": true,
+  "description": "Vertical 3D explainer video: COVID-19 vaccines, what really happened (voiceover-synced captions)",
+  "scripts": {
+    "render": "node render.cjs",
+    "stills": "node render.cjs --stills 2,6,12,20,30,42,52,62,72,84,95,104,110"
+  },
+  "dependencies": {
+    "three": "0.180.0",
+    "topojson-client": "3.1.0",
+    "world-atlas": "2.0.2"
+  }
+}

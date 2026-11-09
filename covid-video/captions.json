@@ -1,0 +1,988 @@
+[
+ {
+  "dur": 3.396,
+  "words": [
+   {
+    "w": "COVID-19",
+    "t": 0.0,
+    "e": 0.94,
+    "hl": true
+   },
+   {
+    "w": "vaccines:",
+    "t": 0.95,
+    "e": 1.75,
+    "hl": false
+   },
+   {
+    "w": "what",
+    "t": 2.03,
+    "e": 2.28,
+    "hl": false
+   },
+   {
+    "w": "really",
+    "t": 2.29,
+    "e": 2.68,
+    "hl": false
+   },
+   {
+    "w": "happened.",
+    "t": 2.69,
+    "e": 3.28,
+    "hl": false
+   }
+  ]
+ },
+ {
+  "dur": 7.706,
+  "words": [
+   {
+    "w": "The",
+    "t": 0.0,
+    "e": 0.26,
+    "hl": false
+   },
+   {
+    "w": "beginning.",
+    "t": 0.27,
+    "e": 1.13,
+    "hl": false
+   },
+   {
+    "w": "December 2019:",
+    "t": 2.04,
+    "e": 3.55,
+    "hl": true
+   },
+   {
+    "w": "a",
+    "t": 3.99,
+    "e": 4.06,
+    "hl": false
+   },
+   {
+    "w": "mysterious",
+    "t": 4.07,
+    "e": 4.8,
+    "hl": false
+   },
+   {
+    "w": "pneumonia",
+    "t": 4.81,
+    "e": 5.34,
+    "hl": false
+   },
+   {
+    "w": "outbreak",
+    "t": 5.35,
+    "e": 5.85,
+    "hl": false
+   },
+   {
+    "w": "emerges",
+    "t": 5.86,
+    "e": 6.41,
+    "hl": false
+   },
+   {
+    "w": "in",
+    "t": 6.42,
+    "e": 6.51,
+    "hl": false
+   },
+   {
+    "w": "Wuhan, China.",
+    "t": 6.52,
+    "e": 7.57,
+    "hl": true
+   }
+  ]
+ },
+ {
+  "dur": 12.356,
+  "words": [
+   {
+    "w": "Global",
+    "t": 0.16,
+    "e": 0.65,
+    "hl": false
+   },
+   {
+    "w": "spread.",
+    "t": 1.09,
+    "e": 1.25,
+    "hl": false
+   },
+   {
+    "w": "March 2020:",
+    "t": 2.49,
+    "e": 3.53,
+    "hl": true
+   },
+   {
+    "w": "COVID-19",
+    "t": 4.81,
+    "e": 5.71,
+    "hl": true
+   },
+   {
+    "w": "spreads",
+    "t": 5.72,
+    "e": 6.14,
+    "hl": false
+   },
+   {
+    "w": "worldwide.",
+    "t": 6.15,
+    "e": 6.9,
+    "hl": false
+   },
+   {
+    "w": "Hospitals",
+    "t": 7.57,
+    "e": 8.12,
+    "hl": false
+   },
+   {
+    "w": "face",
+    "t": 8.13,
+    "e": 8.36,
+    "hl": false
+   },
+   {
+    "w": "growing",
+    "t": 8.37,
+    "e": 8.82,
+    "hl": false
+   },
+   {
+    "w": "pressure",
+    "t": 8.83,
+    "e": 9.22,
+    "hl": false
+   },
+   {
+    "w": "as",
+    "t": 9.23,
+    "e": 9.29,
+    "hl": false
+   },
+   {
+    "w": "governments",
+    "t": 10.28,
+    "e": 10.85,
+    "hl": false
+   },
+   {
+    "w": "impose",
+    "t": 10.86,
+    "e": 11.3,
+    "hl": false
+   },
+   {
+    "w": "restrictions.",
+    "t": 11.31,
+    "e": 12.12,
+    "hl": true
+   }
+  ]
+ },
+ {
+  "dur": 10.188,
+  "words": [
+   {
+    "w": "Vaccine",
+    "t": 0.14,
+    "e": 0.77,
+    "hl": false
+   },
+   {
+    "w": "development.",
+    "t": 0.78,
+    "e": 1.45,
+    "hl": false
+   },
+   {
+    "w": "Scientists",
+    "t": 2.16,
+    "e": 2.79,
+    "hl": false
+   },
+   {
+    "w": "accelerate",
+    "t": 2.8,
+    "e": 3.5,
+    "hl": false
+   },
+   {
+    "w": "vaccine",
+    "t": 3.51,
+    "e": 3.98,
+    "hl": false
+   },
+   {
+    "w": "development",
+    "t": 3.99,
+    "e": 4.5,
+    "hl": false
+   },
+   {
+    "w": "using",
+    "t": 4.51,
+    "e": 4.86,
+    "hl": false
+   },
+   {
+    "w": "years",
+    "t": 4.87,
+    "e": 5.47,
+    "hl": false
+   },
+   {
+    "w": "of",
+    "t": 5.48,
+    "e": 5.58,
+    "hl": false
+   },
+   {
+    "w": "earlier",
+    "t": 5.59,
+    "e": 6.13,
+    "hl": false
+   },
+   {
+    "w": "mRNA",
+    "t": 6.14,
+    "e": 6.67,
+    "hl": true
+   },
+   {
+    "w": "research.",
+    "t": 6.68,
+    "e": 7.29,
+    "hl": false
+   },
+   {
+    "w": "It",
+    "t": 8.13,
+    "e": 8.2,
+    "hl": false
+   },
+   {
+    "w": "is",
+    "t": 8.21,
+    "e": 8.4,
+    "hl": false
+   },
+   {
+    "w": "truly",
+    "t": 8.41,
+    "e": 8.99,
+    "hl": false
+   },
+   {
+    "w": "remarkable.",
+    "t": 9.0,
+    "e": 10.03,
+    "hl": true
+   }
+  ]
+ },
+ {
+  "dur": 10.266,
+  "words": [
+   {
+    "w": "Emergency",
+    "t": 0.1,
+    "e": 0.86,
+    "hl": false
+   },
+   {
+    "w": "approval.",
+    "t": 0.87,
+    "e": 1.6,
+    "hl": false
+   },
+   {
+    "w": "December 2020:",
+    "t": 2.48,
+    "e": 3.77,
+    "hl": true
+   },
+   {
+    "w": "the",
+    "t": 4.26,
+    "e": 4.41,
+    "hl": false
+   },
+   {
+    "w": "FDA",
+    "t": 4.42,
+    "e": 5.0,
+    "hl": false
+   },
+   {
+    "w": "authorizes",
+    "t": 5.01,
+    "e": 5.76,
+    "hl": false
+   },
+   {
+    "w": "the",
+    "t": 5.77,
+    "e": 5.83,
+    "hl": false
+   },
+   {
+    "w": "first",
+    "t": 5.84,
+    "e": 6.31,
+    "hl": false
+   },
+   {
+    "w": "COVID-19",
+    "t": 6.32,
+    "e": 7.13,
+    "hl": true
+   },
+   {
+    "w": "vaccine",
+    "t": 7.14,
+    "e": 7.71,
+    "hl": false
+   },
+   {
+    "w": "for",
+    "t": 7.72,
+    "e": 7.92,
+    "hl": false
+   },
+   {
+    "w": "emergency",
+    "t": 7.93,
+    "e": 8.51,
+    "hl": true
+   },
+   {
+    "w": "use",
+    "t": 8.52,
+    "e": 8.93,
+    "hl": true
+   },
+   {
+    "w": "in",
+    "t": 8.94,
+    "e": 9.08,
+    "hl": false
+   },
+   {
+    "w": "the",
+    "t": 9.09,
+    "e": 9.16,
+    "hl": false
+   },
+   {
+    "w": "United",
+    "t": 9.17,
+    "e": 9.56,
+    "hl": false
+   },
+   {
+    "w": "States.",
+    "t": 9.57,
+    "e": 10.18,
+    "hl": false
+   }
+  ]
+ },
+ {
+  "dur": 9.091,
+  "words": [
+   {
+    "w": "The",
+    "t": 0.0,
+    "e": 0.22,
+    "hl": false
+   },
+   {
+    "w": "campaign.",
+    "t": 0.23,
+    "e": 0.99,
+    "hl": false
+   },
+   {
+    "w": "Governments",
+    "t": 1.78,
+    "e": 2.35,
+    "hl": false
+   },
+   {
+    "w": "encourage",
+    "t": 2.36,
+    "e": 2.92,
+    "hl": false
+   },
+   {
+    "w": "millions",
+    "t": 2.93,
+    "e": 3.64,
+    "hl": true
+   },
+   {
+    "w": "to",
+    "t": 3.65,
+    "e": 3.73,
+    "hl": false
+   },
+   {
+    "w": "get",
+    "t": 3.74,
+    "e": 3.92,
+    "hl": false
+   },
+   {
+    "w": "vaccinated,",
+    "t": 3.93,
+    "e": 4.76,
+    "hl": false
+   },
+   {
+    "w": "emphasizing",
+    "t": 5.11,
+    "e": 5.84,
+    "hl": false
+   },
+   {
+    "w": "protection",
+    "t": 5.85,
+    "e": 6.66,
+    "hl": false
+   },
+   {
+    "w": "against",
+    "t": 6.67,
+    "e": 7.01,
+    "hl": false
+   },
+   {
+    "w": "severe",
+    "t": 7.02,
+    "e": 7.52,
+    "hl": true
+   },
+   {
+    "w": "illness",
+    "t": 7.53,
+    "e": 8.15,
+    "hl": true
+   },
+   {
+    "w": "and",
+    "t": 8.16,
+    "e": 8.45,
+    "hl": true
+   },
+   {
+    "w": "death.",
+    "t": 8.46,
+    "e": 8.95,
+    "hl": true
+   }
+  ]
+ },
+ {
+  "dur": 12.356,
+  "words": [
+   {
+    "w": "The",
+    "t": 0.0,
+    "e": 0.22,
+    "hl": false
+   },
+   {
+    "w": "controversy.",
+    "t": 0.23,
+    "e": 1.52,
+    "hl": false
+   },
+   {
+    "w": "Some",
+    "t": 2.81,
+    "e": 3.2,
+    "hl": false
+   },
+   {
+    "w": "public",
+    "t": 3.21,
+    "e": 3.55,
+    "hl": false
+   },
+   {
+    "w": "messaging",
+    "t": 3.56,
+    "e": 4.12,
+    "hl": false
+   },
+   {
+    "w": "suggests",
+    "t": 4.13,
+    "e": 4.7,
+    "hl": false
+   },
+   {
+    "w": "vaccination",
+    "t": 4.71,
+    "e": 5.54,
+    "hl": false
+   },
+   {
+    "w": "can",
+    "t": 5.55,
+    "e": 5.7,
+    "hl": false
+   },
+   {
+    "w": "stop",
+    "t": 5.71,
+    "e": 6.06,
+    "hl": true
+   },
+   {
+    "w": "transmission.",
+    "t": 6.07,
+    "e": 6.87,
+    "hl": true
+   },
+   {
+    "w": "But",
+    "t": 7.43,
+    "e": 7.95,
+    "hl": false
+   },
+   {
+    "w": "later",
+    "t": 7.96,
+    "e": 8.3,
+    "hl": false
+   },
+   {
+    "w": "evidence",
+    "t": 8.31,
+    "e": 8.73,
+    "hl": false
+   },
+   {
+    "w": "reveals",
+    "t": 8.74,
+    "e": 9.16,
+    "hl": false
+   },
+   {
+    "w": "protection",
+    "t": 9.17,
+    "e": 9.72,
+    "hl": false
+   },
+   {
+    "w": "against",
+    "t": 9.73,
+    "e": 10.05,
+    "hl": false
+   },
+   {
+    "w": "infection",
+    "t": 10.06,
+    "e": 10.74,
+    "hl": true
+   },
+   {
+    "w": "decreases",
+    "t": 10.75,
+    "e": 11.52,
+    "hl": true
+   },
+   {
+    "w": "over",
+    "t": 11.53,
+    "e": 11.71,
+    "hl": false
+   },
+   {
+    "w": "time.",
+    "t": 11.72,
+    "e": 12.18,
+    "hl": false
+   }
+  ]
+ },
+ {
+  "dur": 12.931,
+  "words": [
+   {
+    "w": "The",
+    "t": 0.0,
+    "e": 0.22,
+    "hl": false
+   },
+   {
+    "w": "pressure.",
+    "t": 0.23,
+    "e": 0.97,
+    "hl": false
+   },
+   {
+    "w": "2021:",
+    "t": 1.9,
+    "e": 2.82,
+    "hl": true
+   },
+   {
+    "w": "some",
+    "t": 3.45,
+    "e": 3.71,
+    "hl": false
+   },
+   {
+    "w": "employers",
+    "t": 3.72,
+    "e": 4.33,
+    "hl": false
+   },
+   {
+    "w": "and",
+    "t": 4.34,
+    "e": 4.43,
+    "hl": false
+   },
+   {
+    "w": "institutions",
+    "t": 4.44,
+    "e": 5.2,
+    "hl": false
+   },
+   {
+    "w": "require",
+    "t": 5.21,
+    "e": 5.81,
+    "hl": true
+   },
+   {
+    "w": "vaccination,",
+    "t": 5.82,
+    "e": 6.6,
+    "hl": true
+   },
+   {
+    "w": "and",
+    "t": 7.23,
+    "e": 7.52,
+    "hl": false
+   },
+   {
+    "w": "people",
+    "t": 8.14,
+    "e": 8.43,
+    "hl": false
+   },
+   {
+    "w": "face",
+    "t": 8.44,
+    "e": 8.78,
+    "hl": false
+   },
+   {
+    "w": "difficult",
+    "t": 8.79,
+    "e": 9.25,
+    "hl": false
+   },
+   {
+    "w": "choices",
+    "t": 9.26,
+    "e": 9.75,
+    "hl": false
+   },
+   {
+    "w": "about",
+    "t": 9.76,
+    "e": 10.04,
+    "hl": false
+   },
+   {
+    "w": "work,",
+    "t": 10.05,
+    "e": 10.64,
+    "hl": false
+   },
+   {
+    "w": "education,",
+    "t": 10.75,
+    "e": 11.65,
+    "hl": false
+   },
+   {
+    "w": "and",
+    "t": 11.66,
+    "e": 11.82,
+    "hl": false
+   },
+   {
+    "w": "personal",
+    "t": 11.83,
+    "e": 12.24,
+    "hl": true
+   },
+   {
+    "w": "freedom.",
+    "t": 12.25,
+    "e": 12.77,
+    "hl": true
+   }
+  ]
+ },
+ {
+  "dur": 11.546,
+  "words": [
+   {
+    "w": "The",
+    "t": 0.0,
+    "e": 0.19,
+    "hl": false
+   },
+   {
+    "w": "science.",
+    "t": 0.2,
+    "e": 1.17,
+    "hl": false
+   },
+   {
+    "w": "Large",
+    "t": 2.05,
+    "e": 2.43,
+    "hl": false
+   },
+   {
+    "w": "studies",
+    "t": 2.44,
+    "e": 2.86,
+    "hl": false
+   },
+   {
+    "w": "confirm",
+    "t": 2.87,
+    "e": 3.3,
+    "hl": false
+   },
+   {
+    "w": "strong real-world",
+    "t": 3.31,
+    "e": 4.26,
+    "hl": true
+   },
+   {
+    "w": "protection",
+    "t": 4.27,
+    "e": 4.86,
+    "hl": false
+   },
+   {
+    "w": "against",
+    "t": 4.87,
+    "e": 5.17,
+    "hl": false
+   },
+   {
+    "w": "severe COVID-19,",
+    "t": 5.18,
+    "e": 6.65,
+    "hl": true
+   },
+   {
+    "w": "while",
+    "t": 7.47,
+    "e": 7.7,
+    "hl": false
+   },
+   {
+    "w": "researchers",
+    "t": 7.71,
+    "e": 8.31,
+    "hl": false
+   },
+   {
+    "w": "identify",
+    "t": 8.32,
+    "e": 8.81,
+    "hl": false
+   },
+   {
+    "w": "rare",
+    "t": 8.82,
+    "e": 9.3,
+    "hl": true
+   },
+   {
+    "w": "but",
+    "t": 9.31,
+    "e": 9.49,
+    "hl": true
+   },
+   {
+    "w": "serious",
+    "t": 9.5,
+    "e": 10.12,
+    "hl": true
+   },
+   {
+    "w": "vaccine",
+    "t": 10.13,
+    "e": 10.59,
+    "hl": false
+   },
+   {
+    "w": "side",
+    "t": 10.6,
+    "e": 10.86,
+    "hl": false
+   },
+   {
+    "w": "effects.",
+    "t": 10.87,
+    "e": 11.43,
+    "hl": false
+   }
+  ]
+ },
+ {
+  "dur": 12.356,
+  "words": [
+   {
+    "w": "The",
+    "t": 0.0,
+    "e": 0.23,
+    "hl": false
+   },
+   {
+    "w": "aftermath.",
+    "t": 0.24,
+    "e": 1.0,
+    "hl": false
+   },
+   {
+    "w": "Public",
+    "t": 1.93,
+    "e": 2.31,
+    "hl": false
+   },
+   {
+    "w": "trust",
+    "t": 2.32,
+    "e": 2.82,
+    "hl": false
+   },
+   {
+    "w": "fractures.",
+    "t": 2.83,
+    "e": 3.7,
+    "hl": true
+   },
+   {
+    "w": "Scientists",
+    "t": 4.34,
+    "e": 5.0,
+    "hl": false
+   },
+   {
+    "w": "continue",
+    "t": 5.01,
+    "e": 5.58,
+    "hl": false
+   },
+   {
+    "w": "studying",
+    "t": 5.59,
+    "e": 6.08,
+    "hl": false
+   },
+   {
+    "w": "vaccine",
+    "t": 6.09,
+    "e": 6.6,
+    "hl": false
+   },
+   {
+    "w": "benefits",
+    "t": 6.61,
+    "e": 7.32,
+    "hl": true
+   },
+   {
+    "w": "and",
+    "t": 7.33,
+    "e": 7.51,
+    "hl": true
+   },
+   {
+    "w": "risks,",
+    "t": 7.52,
+    "e": 8.1,
+    "hl": true
+   },
+   {
+    "w": "changing",
+    "t": 8.27,
+    "e": 8.66,
+    "hl": false
+   },
+   {
+    "w": "variants,",
+    "t": 8.67,
+    "e": 9.27,
+    "hl": false
+   },
+   {
+    "w": "and",
+    "t": 9.28,
+    "e": 9.8,
+    "hl": false
+   },
+   {
+    "w": "the",
+    "t": 9.81,
+    "e": 9.87,
+    "hl": false
+   },
+   {
+    "w": "consequences",
+    "t": 9.88,
+    "e": 10.76,
+    "hl": false
+   },
+   {
+    "w": "of",
+    "t": 10.77,
+    "e": 10.84,
+    "hl": false
+   },
+   {
+    "w": "public",
+    "t": 10.85,
+    "e": 11.2,
+    "hl": false
+   },
+   {
+    "w": "health",
+    "t": 11.21,
+    "e": 11.45,
+    "hl": false
+   },
+   {
+    "w": "policies.",
+    "t": 11.46,
+    "e": 12.18,
+    "hl": false
+   }
+  ]
+ }
+]

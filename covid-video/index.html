@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>COVID-19 Vaccines Timeline</title>
+<style>
+  html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #050814; }
+  body { font-family: 'Inter', 'Inter Display', system-ui, sans-serif; color: #fff; -webkit-font-smoothing: antialiased; }
+  #c { position: absolute; inset: 0; width: 1080px; height: 1920px; display: block; }
+  .layer { position: absolute; left: 0; right: 0; pointer-events: none; }
+  #scrimTop { top: 0; height: 760px; background: linear-gradient(to bottom, rgba(4,7,18,.9) 0%, rgba(4,7,18,.55) 55%, rgba(4,7,18,0) 100%); }
+  #scrimBot { bottom: 0; height: 840px; background: linear-gradient(to top, rgba(4,7,18,.92) 0%, rgba(4,7,18,.55) 50%, rgba(4,7,18,0) 100%); }
+
+  #hud { top: 0; text-align: center; }
+  #kicker { position: absolute; top: 150px; left: 0; right: 0; font-weight: 700; font-size: 30px; letter-spacing: .3em; color: #8fd8ff; }
+  #counter { position: absolute; top: 192px; left: 0; right: 0; height: 200px; display: flex; align-items: baseline; justify-content: center; gap: 28px;
+             font-family: 'Inter Display', 'Inter', sans-serif; font-weight: 800; font-variant-numeric: tabular-nums; transform-origin: 50% 60%; }
+  #mon { font-size: 96px; letter-spacing: .04em; line-height: 1; color: #ffc145; }
+  #num { font-size: 184px; letter-spacing: -.02em; line-height: 1; text-shadow: 0 6px 30px rgba(0,0,0,.45); }
+  #phase { position: absolute; top: 410px; left: 0; right: 0; font-weight: 700; font-size: 34px; letter-spacing: .24em; color: #fff; }
+  #phase .n { color: #8fd8ff; margin-right: 18px; }
+  #bar { position: absolute; top: 478px; left: 150px; width: 780px; height: 8px; border-radius: 4px; background: rgba(255,255,255,.16); }
+  #barFill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 4px; background: linear-gradient(90deg, #ff5d6c, #ffc145 45%, #5ad1ff); }
+  .tick { position: absolute; top: -6px; width: 20px; height: 20px; margin-left: -10px; border-radius: 50%; background: #2a3354; border: 3px solid rgba(255,255,255,.35); box-sizing: border-box; }
+  .tick.on { background: #ffc145; border-color: #fff; }
+  #chip { position: absolute; top: 524px; left: 50%; transform: translateX(-50%); display: flex; gap: 22px; align-items: center; white-space: nowrap;
+          padding: 16px 34px; border-radius: 999px; background: rgba(10,16,36,.72); border: 2px solid rgba(255,255,255,.14); }
+  #chipLabel { font-weight: 700; font-size: 25px; letter-spacing: .14em; color: #a9bbe0; }
+  #chipVal { font-family: 'Inter Display', 'Inter', sans-serif; font-weight: 800; font-size: 44px; font-variant-numeric: tabular-nums; color: #fff; }
+
+  #callouts { top: 0; bottom: 0; }
+  .co { position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 16px 30px; border-radius: 22px; font-weight: 800; font-size: 36px;
+        letter-spacing: .06em; background: rgba(8,12,30,.82); border: 3px solid currentColor; opacity: 0; }
+  .meter { position: absolute; left: 110px; right: 110px; padding: 22px 30px 26px; border-radius: 26px; background: rgba(8,12,30,.82); border: 2px solid rgba(255,255,255,.14); opacity: 0; }
+  .meter .lbl { font-weight: 800; font-size: 30px; letter-spacing: .1em; margin-bottom: 14px; display: flex; justify-content: space-between; }
+  .meter .lbl small { font-weight: 600; font-size: 22px; letter-spacing: .12em; color: #a9bbe0; align-self: center; }
+  .meter .track { height: 22px; border-radius: 11px; background: rgba(255,255,255,.12); overflow: hidden; }
+  .meter .fill { height: 100%; border-radius: 11px; width: 0; }
+
+  #cap { bottom: 330px; padding: 0 56px; display: flex; justify-content: center; }
+  #capBox { max-width: 968px; text-align: center; padding: 28px 40px 32px; border-radius: 34px; background: rgba(8,12,30,.64);
+            border: 2px solid rgba(255,255,255,.1); font-weight: 800; font-size: 62px; line-height: 1.16; letter-spacing: -.01em; }
+  #capBox .w { display: inline-block; white-space: pre; }
+  #capBox .hl { color: #ffc145; }
+
+  #intro { top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 0 80px; background: rgba(5,8,20,.5); }
+  #intro .k { font-weight: 800; font-size: 46px; letter-spacing: .3em; color: #8fd8ff; margin-bottom: 30px; }
+  #intro .t { font-family: 'Inter Display', 'Inter', sans-serif; font-weight: 800; font-size: 118px; line-height: 1.02; letter-spacing: -.02em; }
+  #intro .t .w { display: inline-block; }
+  #intro .s { margin-top: 44px; font-weight: 600; font-size: 34px; letter-spacing: .16em; color: #ffc145; }
+
+  #fade { top: 0; bottom: 0; background: #03050d; opacity: 0; }
+
+  #science { top: 0; bottom: 0; }
+  .card { position: absolute; left: 60px; right: 60px; bottom: 500px; padding: 44px 48px 50px; border-radius: 38px; background: rgba(8,12,30,.82);
+          border: 2px solid rgba(255,255,255,.12); }
+  .card h2 { margin: 0 0 22px; font-weight: 800; font-size: 32px; letter-spacing: .3em; color: #5ad1ff; }
+  .card p { margin: 0; font-weight: 700; font-size: 52px; line-height: 1.2; letter-spacing: -.01em; }
+  .card p .hl { color: #ffc145; }
+  #sources { position: absolute; left: 70px; right: 70px; bottom: 330px; text-align: center; font-weight: 500; font-size: 25px; line-height: 1.45; color: #a9bbe0; }
+</style>
+<script type="importmap">
+{ "imports": { "three": "/node_modules/three/build/three.module.js", "three/addons/": "/node_modules/three/examples/jsm/",
+               "topojson-client": "/node_modules/topojson-client/src/index.js" } }
+</script>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<div class="layer" id="scrimTop"></div>
+<div class="layer" id="scrimBot"></div>
+
+<div class="layer" id="callouts">
+  <div class="co" id="coLock" style="top:700px;color:#ff8a8a">RESTRICTIONS &amp; LOCKDOWNS</div>
+  <div class="co" id="coHosp" style="top:1180px;color:#ff5d6c">HOSPITALS UNDER PRESSURE</div>
+  <div class="co" id="coRes" style="top:700px;color:#8fd8ff">YEARS OF EARLIER mRNA RESEARCH</div>
+  <div class="co" id="coEua" style="top:700px;color:#7dffb2">FDA · EMERGENCY USE AUTHORIZATION</div>
+  <div class="co" id="coSev" style="top:700px;color:#5ad1ff">GOAL: PREVENT SEVERE ILLNESS &amp; DEATH</div>
+  <div class="co" id="coStop" style="top:700px;color:#ffc145">CAN IT STOP TRANSMISSION?</div>
+  <div class="meter" id="mInf" style="top:690px"><div class="lbl"><span style="color:#ffc145">PROTECTION vs INFECTION</span><small>OVER TIME</small></div><div class="track"><div class="fill" style="background:linear-gradient(90deg,#ffc145,#ff8a5c)"></div></div></div>
+  <div class="co" id="coReq" style="top:700px;color:#ffc145">VACCINATION REQUIRED</div>
+  <div class="co" id="coFree" style="top:1200px;color:#a9bbe0">WORK · EDUCATION · PERSONAL FREEDOM</div>
+  <div class="meter" id="mSev" style="top:690px"><div class="lbl"><span style="color:#5ad1ff">PROTECTION vs SEVERE COVID-19</span><small>STRONG</small></div><div class="track"><div class="fill" style="background:linear-gradient(90deg,#5ad1ff,#7dffb2)"></div></div></div>
+  <div class="meter" id="mSide" style="top:850px"><div class="lbl"><span style="color:#ff9f6b">SERIOUS SIDE EFFECTS</span><small>RARE</small></div><div class="track"><div class="fill" style="background:#ff9f6b"></div></div></div>
+  <div class="co" id="coTrust" style="top:700px;color:#ff8a8a">PUBLIC TRUST FRACTURES</div>
+  <div class="co" id="coStudy" style="top:1200px;color:#8fd8ff">BENEFITS · RISKS · VARIANTS · POLICY</div>
+</div>
+
+<div class="layer" id="hud">
+  <div id="kicker">COVID-19 VACCINES</div>
+  <div id="counter"><span id="mon">DEC</span><span id="num">2019</span></div>
+  <div id="phase"></div>
+  <div id="bar"><div id="barFill"></div></div>
+  <div id="chip"><span id="chipLabel">VACCINE DOSES GIVEN WORLDWIDE</span><span id="chipVal">0</span></div>
+</div>
+
+<div class="layer" id="cap"><div id="capBox"></div></div>
+
+<div class="layer" id="intro">
+  <div class="k">COVID-19 VACCINES</div>
+  <div class="t"><span class="w">What</span> <span class="w">really</span> <span class="w">happened</span></div>
+  <div class="s">A TIMELINE · 2019 → TODAY</div>
+</div>
+
+<div class="layer" id="science">
+  <div class="card" id="sci1"><h2>THE SCIENCE</h2><p>The vaccines sharply cut the risk of <span class="hl">severe illness and death</span>. Protection against <span class="hl">infection</span> fades within months, especially as variants change.</p></div>
+  <div class="card" id="sci2"><h2>THE SCIENCE</h2><p>Serious side effects are <span class="hl">rare but real</span>: myocarditis after mRNA vaccines, mostly in young men, and rare blood clots (TTS) after some viral-vector vaccines.</p></div>
+  <div id="sources">Dose counts rounded; meters are illustrative, not measured values.<br>Sources: WHO · U.S. FDA · CDC · Our World in Data · peer-reviewed studies (NEJM, The Lancet)</div>
+</div>
+
+<div class="layer" id="fade"></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { feature, mesh as topoMesh } from 'topojson-client';
+
+const W = 1080, H = 1920;
+
+// ---------- helpers ----------
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const rnd = mulberry32(20261109);
+const hash = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, f) => a + (b - a) * f;
+const ramp = (x, a, b) => clamp((x - a) / (b - a));
+const smooth = f => f * f * (3 - 2 * f);
+const easeOut = f => 1 - Math.pow(1 - f, 3);
+const easeOutBack = f => { if (f <= 0) return 0; if (f >= 1) return 1; const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(f - 1, 3) + c1 * Math.pow(f - 1, 2); };
+const pulse = (x, a, b, fin = 0.15, fout = 0.15) => ramp(x, a, a + fin) * (1 - ramp(x, b - fout, b));
+
+// ---------- timeline (driven by the voiceover clips) ----------
+const CAPS = await (await fetch('/captions.json')).json();
+const LEAD = 0.4, GAP = 0.55, SPEECH_IN = 0.2, OUTRO = 11.0;
+const M = (y, mo) => y * 12 + mo - 1;
+const CHAPTERS = [
+  { name: 'THE BEGINNING',      from: M(2019, 12), to: M(2019, 12) },
+  { name: 'GLOBAL SPREAD',      from: M(2020, 1),  to: M(2020, 3) },
+  { name: 'VACCINE DEVELOPMENT', from: M(2020, 3), to: M(2020, 11) },
+  { name: 'EMERGENCY APPROVAL', from: M(2020, 12), to: M(2020, 12) },
+  { name: 'THE CAMPAIGN',       from: M(2021, 1),  to: M(2021, 6) },
+  { name: 'THE CONTROVERSY',    from: M(2021, 7),  to: M(2021, 8) },
+  { name: 'THE PRESSURE',       from: M(2021, 9),  to: M(2021, 11) },
+  { name: 'THE SCIENCE',        from: M(2022, 1),  to: M(2022, 12) },
+  { name: 'THE AFTERMATH',      from: M(2023, 1),  to: M(2026, 11), today: true },
+];
+const INTRO = LEAD + CAPS[0].dur + GAP;
+const AUDIO = [{ file: 'audio/01.mp3', at: LEAD }];
+let acc = INTRO;
+CHAPTERS.forEach((c, i) => {
+  const cap = CAPS[i + 1];
+  c.start = acc; c.d = cap.dur + GAP; acc += c.d;
+  c.speech = c.start + SPEECH_IN - 0.15;
+  AUDIO.push({ file: `audio/${String(i + 2).padStart(2, '0')}.mp3`, at: c.start + SPEECH_IN - 0.15 });
+});
+const OUTRO_START = acc, TOTAL = acc + OUTRO;
+window.TOTAL = TOTAL;
+
+function beatPos(t) {
+  if (t < INTRO) return -1 + t / INTRO;
+  for (let i = 0; i < CHAPTERS.length; i++) { const c = CHAPTERS[i]; if (t < c.start + c.d) return i + (t - c.start) / c.d; }
+  return CHAPTERS.length + Math.min(1, (t - OUTRO_START) / OUTRO);
+}
+
+// caption pages: break after sentence ends, max 7 words
+const PAGES = [];
+CAPS.forEach((cap, ci) => {
+  const base = ci === 0 ? LEAD : CHAPTERS[ci - 1].start + SPEECH_IN - 0.15;
+  let page = [];
+  const flush = () => { if (page.length) PAGES.push({ clip: ci, words: page }); page = []; };
+  cap.words.forEach((w, k) => {
+    page.push({ text: w.w, hl: w.hl, t: base + w.t });
+    const end = /[.:]$/.test(w.w), comma = /,$/.test(w.w);
+    const next = cap.words[k + 1];
+    if (!next || end || (comma && page.length >= 4) || page.length >= 7) flush();
+  });
+});
+PAGES.forEach((p, k) => {
+  p.start = p.words[0].t - 0.12;
+  const nx = PAGES[k + 1];
+  const clipEnd = p.clip === 0 ? INTRO - 0.1 : CHAPTERS[p.clip - 1].start + CHAPTERS[p.clip - 1].d - 0.05;
+  p.end = nx && nx.clip === p.clip ? nx.start : clipEnd;
+});
+
+// ---------- renderer ----------
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(W, H, false);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, W / H, 0.1, 600);
+scene.fog = new THREE.Fog(0x1a2140, 45, 140);
+
+const skyMat = new THREE.ShaderMaterial({
+  side: THREE.BackSide, depthWrite: false, fog: false,
+  uniforms: { top: { value: new THREE.Color() }, bot: { value: new THREE.Color() } },
+  vertexShader: 'varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+  fragmentShader: 'uniform vec3 top; uniform vec3 bot; varying vec3 vP; void main(){ float h = clamp(vP.y*1.6+0.12,0.0,1.0); gl_FragColor = vec4(mix(bot, top, pow(h,0.8)), 1.0); }'
+});
+const sky = new THREE.Mesh(new THREE.SphereGeometry(400, 32, 16), skyMat);
+scene.add(sky);
+// stars (visible in the globe chapters)
+const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1.6, sizeAttenuation: false, transparent: true, fog: false, depthWrite: false });
+{
+  const p = [];
+  for (let k = 0; k < 1400; k++) { const u = rnd() * 2 - 1, a = rnd() * Math.PI * 2, r = Math.sqrt(1 - u * u); p.push(Math.cos(a) * r * 380, u * 380, Math.sin(a) * r * 380); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(p, 3));
+  sky.add(new THREE.Points(g, starMat));
+}
+
+const hemi = new THREE.HemisphereLight(0xbfd4ff, 0x2a2430, 0.8);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffffff, 2.0);
+sun.position.set(18, 30, 12);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -26, right: 26, top: 26, bottom: -26, near: 1, far: 100 });
+sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.03;
+scene.add(sun);
+
+function makeLabel(text, fg = '#ffffff', bg = 'rgba(10,16,36,0.85)', border = null) {
+  const c = document.createElement('canvas'); const g = c.getContext('2d');
+  const font = '800 66px Inter, sans-serif'; g.font = font;
+  const tw = Math.ceil(g.measureText(text).width);
+  c.width = tw + 80; c.height = 112;
+  g.font = font;
+  g.fillStyle = bg; g.beginPath(); g.roundRect(4, 4, c.width - 8, c.height - 8, 50); g.fill();
+  if (border) { g.strokeStyle = border; g.lineWidth = 6; g.stroke(); }
+  g.fillStyle = fg; g.textBaseline = 'middle'; g.textAlign = 'center'; g.fillText(text, c.width / 2, c.height / 2 + 3);
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false, toneMapped: false, fog: false }));
+  sp.userData.aspect = c.width / c.height; sp.renderOrder = 10; sp.visible = false;
+  scene.add(sp); return sp;
+}
+function placeLabel(sp, pos, opacity, size = 0.85) {
+  sp.visible = opacity > 0.01;
+  if (!sp.visible) return;
+  sp.position.copy(pos);
+  const d = camera.position.distanceTo(pos);
+  const s = size * clamp(d / 18, 0.7, 2.6);
+  sp.scale.set(s * sp.userData.aspect, s, 1);
+  sp.material.opacity = opacity;
+}
+
+// virus particle geometry (sphere + spike proteins)
+const virusGeo = (() => {
+  const parts = [new THREE.IcosahedronGeometry(0.3, 2)];
+  const ico = new THREE.IcosahedronGeometry(1, 1), pos = ico.attributes.position, seen = new Set();
+  for (let k = 0; k < pos.count; k++) {
+    const v = new THREE.Vector3().fromBufferAttribute(pos, k).normalize(); const key = v.toArray().map(x => x.toFixed(3)).join();
+    if (seen.has(key)) continue; seen.add(key);
+    const stalk = new THREE.CylinderGeometry(0.025, 0.025, 0.14, 5); stalk.translate(0, 0.35, 0);
+    const tip = new THREE.SphereGeometry(0.055, 6, 4); tip.translate(0, 0.43, 0);
+    const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), v);
+    for (const g of [stalk, tip]) { g.applyQuaternion(q); parts.push(g.toNonIndexed()); }
+  }
+  parts[0] = parts[0].toNonIndexed();
+  for (const p of parts) { p.deleteAttribute('uv'); }
+  return mergeGeometries(parts);
+})();
+
+// =====================================================================
+// SET A: the globe (chapters 1-2), far from the plaza
+// =====================================================================
+const G0 = new THREE.Vector3(0, 0, -1500), GR = 10;
+const globeTilt = new THREE.Group(); globeTilt.position.copy(G0); scene.add(globeTilt);
+const globe = new THREE.Group(); globeTilt.add(globe);
+function ll(lat, lon, r = GR) {
+  const phi = (90 - lat) * Math.PI / 180, th = (lon + 180) * Math.PI / 180;
+  return new THREE.Vector3(-r * Math.sin(phi) * Math.cos(th), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(th));
+}
+const world = await (await fetch('/node_modules/world-atlas/countries-110m.json')).json();
+const landCanvas = document.createElement('canvas'); landCanvas.width = 4096; landCanvas.height = 2048;
+let landData;
+{
+  const g = landCanvas.getContext('2d'), Wc = 4096, Hc = 2048;
+  const px = ([lon, lat]) => [(lon + 180) / 360 * Wc, (90 - lat) / 180 * Hc];
+  g.fillStyle = '#0a1a33'; g.fillRect(0, 0, Wc, Hc);
+  g.strokeStyle = 'rgba(120,170,255,0.10)'; g.lineWidth = 2;
+  for (let lo = -180; lo <= 180; lo += 15) { g.beginPath(); g.moveTo(...px([lo, 90])); g.lineTo(...px([lo, -90])); g.stroke(); }
+  for (let la = -75; la <= 75; la += 15) { g.beginPath(); g.moveTo(...px([-180, la])); g.lineTo(...px([180, la])); g.stroke(); }
+  const land = feature(world, world.objects.land);
+  const drawPoly = rings => { g.beginPath(); for (const ring of rings) ring.forEach((p, k) => { const [x, y] = px(p); k ? g.lineTo(x, y) : g.moveTo(x, y); }); };
+  g.fillStyle = '#2f5568'; g.strokeStyle = '#7fc3d8'; g.lineWidth = 3;
+  for (const f of land.features) {
+    const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates;
+    for (const poly of polys) {
+      if (poly[0].some(([lo]) => Math.abs(lo) > 179.5) && poly[0].some(([lo]) => Math.abs(lo) < 170)) continue; // skip antimeridian wraps
+      drawPoly(poly); g.fill('evenodd'); g.stroke();
+    }
+  }
+  const borders = topoMesh(world, world.objects.countries, (a, b) => a !== b);
+  g.strokeStyle = 'rgba(160,215,235,0.35)'; g.lineWidth = 1.6;
+  for (const line of borders.coordinates) { g.beginPath(); line.forEach((p, k) => { const [x, y] = px(p); k ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke(); }
+  landData = g.getImageData(0, 0, Wc, Hc).data;
+}
+const isLand = (lat, lon) => { const x = Math.floor((lon + 180) / 360 * 4095), y = Math.floor((90 - lat) / 180 * 2047); return landData[(y * 4096 + x) * 4 + 1] > 70; };
+{
+  const tex = new THREE.CanvasTexture(landCanvas); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+  const earth = new THREE.Mesh(new THREE.SphereGeometry(GR, 128, 64), new THREE.MeshStandardMaterial({ map: tex, roughness: .85, metalness: 0, emissive: 0x2a5a78, emissiveIntensity: 0.45, fog: false }));
+  globe.add(earth);
+  const atm = new THREE.Mesh(new THREE.SphereGeometry(GR * 1.12, 64, 32), new THREE.ShaderMaterial({
+    side: THREE.BackSide, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false,
+    vertexShader: 'varying vec3 vN; varying vec3 vV; void main(){ vN = normalize(normalMatrix*normal); vec4 mv = modelViewMatrix*vec4(position,1.0); vV = normalize(-mv.xyz); gl_Position = projectionMatrix*mv; }',
+    fragmentShader: 'varying vec3 vN; varying vec3 vV; void main(){ float f = pow(clamp(1.0 - abs(dot(vN, vV)), 0.0, 1.0), 2.2); gl_FragColor = vec4(vec3(0.35,0.7,1.0)*f*1.6, 1.0); }'
+  }));
+  globeTilt.add(atm);
+}
+const WUHAN = [30.59, 114.3];
+const wuhanV = ll(...WUHAN);
+const greatDist = (a, b) => { const A = ll(...a, 1), B = ll(...b, 1); return Math.acos(clamp(A.dot(B), -1, 1)); };
+
+// infection dots on land
+const DOTS = [];
+{
+  let tries = 0;
+  DOTS.push({ lat: WUHAN[0], lon: WUHAN[1], t0: 0.2, big: true });
+  for (let k = 0; k < 10; k++) DOTS.push({ lat: WUHAN[0] + (rnd() - .5) * 3, lon: WUHAN[1] + (rnd() - .5) * 3, t0: 0.3 + k * 0.05 });
+  while (DOTS.length < 1100 && tries++ < 60000) {
+    const lat = Math.asin(rnd() * 2 - 1) * 180 / Math.PI, lon = rnd() * 360 - 180;
+    if (lat < -56 || lat > 72 || !isLand(lat, lon)) continue;
+    const dd = greatDist(WUHAN, [lat, lon]) / Math.PI;
+    DOTS.push({ lat, lon, t0: 1.06 + 0.72 * Math.pow(dd, 0.75) + rnd() * 0.12 });
+  }
+}
+const dotMat = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false, fog: false });
+const dotMesh = new THREE.InstancedMesh(new THREE.SphereGeometry(0.075, 8, 6), dotMat, DOTS.length);
+dotMesh.frustumCulled = false; globe.add(dotMesh);
+DOTS.forEach(d => { d.v = ll(d.lat, d.lon, GR + 0.03); });
+const C_DOT = new THREE.Color(0xff3b4a).multiplyScalar(2.2), C_DOT_HOT = new THREE.Color(0xff8a3c).multiplyScalar(3.2);
+// Wuhan pulse rings
+const pulseRings = [0, 1, 2].map(k => {
+  const m = new THREE.Mesh(new THREE.RingGeometry(0.8, 1.0, 48), new THREE.MeshBasicMaterial({ color: 0xff4a5a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, fog: false }));
+  m.position.copy(ll(...WUHAN, GR + 0.05)); m.lookAt(ll(...WUHAN, GR * 2)); globe.add(m); return m;
+});
+const lblWuhan = makeLabel('WUHAN, CHINA', '#ff8a8a');
+// travel arcs out of Wuhan
+const CITIES = [[35.7, 139.7], [37.6, 127.0], [13.8, 100.5], [28.6, 77.2], [25.2, 55.3], [35.7, 51.4], [45.5, 9.2], [40.4, -3.7], [51.5, -0.1], [48.9, 2.35], [-26.2, 28.0], [40.7, -74.0], [47.6, -122.3], [-23.5, -46.6], [19.4, -99.1], [-33.9, 151.2]];
+const ARCS = CITIES.map((c, k) => {
+  const pts = [];
+  const A = ll(...WUHAN, 1), B = ll(...c, 1), ang = A.angleTo(B);
+  for (let s = 0; s <= 64; s++) {
+    const f = s / 64, v = new THREE.Vector3().copy(A).applyAxisAngle(new THREE.Vector3().crossVectors(A, B).normalize(), ang * f);
+    pts.push(v.multiplyScalar(GR + 0.05 + Math.sin(Math.PI * f) * (1.2 + ang * 2.2)));
+  }
+  const geo = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 64, 0.045, 6, false);
+  const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: new THREE.Color(0xffb14a).multiplyScalar(2.0), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, fog: false }));
+  m.userData.count = geo.index.count; geo.setDrawRange(0, 0); globe.add(m);
+  // order arcs by westward distance so they appear as the globe turns
+  let dl = WUHAN[1] - c[1]; if (dl < 0) dl += 360;
+  m.userData.t0 = 1.02 + dl / 360 * 0.55 + hash(k) * 0.05;
+  return m;
+});
+
+// =====================================================================
+// SET B: the plaza (chapters 3-9) at the origin
+// =====================================================================
+const PR = 15.5;
+const groundL = new THREE.Mesh(new THREE.CylinderGeometry(PR + 1.2, PR + 1.2, 0.4, 64, 1, false, Math.PI, Math.PI), new THREE.MeshStandardMaterial({ color: 0x3a4458, roughness: .95 }));
+const groundR = new THREE.Mesh(new THREE.CylinderGeometry(PR + 1.2, PR + 1.2, 0.4, 64, 1, false, 0, Math.PI), new THREE.MeshStandardMaterial({ color: 0x3a4458, roughness: .95 }));
+for (const g of [groundL, groundR]) { g.position.y = -0.2; g.receiveShadow = true; scene.add(g); }
+const field = new THREE.Mesh(new THREE.CircleGeometry(400, 48), new THREE.MeshStandardMaterial({ color: 0x1d2433, roughness: 1 }));
+field.rotation.x = -Math.PI / 2; field.position.y = -0.6; field.receiveShadow = true; scene.add(field);
+// plaza rings
+const ringLines = [];
+for (const r of [5.2, 10.5, PR + 0.6]) {
+  const m = new THREE.Mesh(new THREE.RingGeometry(r - 0.05, r + 0.05, 128), new THREE.MeshBasicMaterial({ color: 0x5ad1ff, transparent: true, opacity: 0.25, toneMapped: false }));
+  m.rotation.x = -Math.PI / 2; m.position.y = 0.02; scene.add(m); ringLines.push(m);
+}
+// crack (aftermath)
+const crackMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xff6a3c).multiplyScalar(0.9), transparent: true, opacity: 0, toneMapped: false });
+const crack = new THREE.Mesh(new THREE.BoxGeometry(1, 0.05, (PR + 1.2) * 2), crackMat); crack.position.y = -0.55; scene.add(crack);
+
+// pedestal / lab
+const pedestal = new THREE.Group(); scene.add(pedestal);
+{
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.5, 0.6, 48), new THREE.MeshStandardMaterial({ color: 0xdfe6f0, roughness: .5, metalness: .1 }));
+  base.position.y = 0.3; base.castShadow = base.receiveShadow = true;
+  const glow = new THREE.Mesh(new THREE.TorusGeometry(3.2, 0.06, 8, 96), new THREE.MeshBasicMaterial({ color: new THREE.Color(0x5ad1ff).multiplyScalar(2), toneMapped: false }));
+  glow.rotation.x = Math.PI / 2; glow.position.y = 0.62;
+  pedestal.add(base, glow);
+}
+// mRNA strand
+const STRAND_N = 150;
+const strandCurve = new THREE.CatmullRomCurve3(Array.from({ length: 12 }, (_, k) => { const f = k / 11; return new THREE.Vector3(Math.sin(f * Math.PI * 3.2) * 1.9, 1.4 + f * 5.2, Math.cos(f * Math.PI * 3.2) * 1.9); }));
+const backbone = new THREE.Mesh(new THREE.TubeGeometry(strandCurve, 300, 0.07, 8, false), new THREE.MeshStandardMaterial({ color: 0xe8f4ff, emissive: 0x5ad1ff, emissiveIntensity: 0.9, roughness: .4 }));
+backbone.userData.count = backbone.geometry.index.count; scene.add(backbone);
+const BASE_COL = [0xff6b6b, 0xffc145, 0x5ad1a1, 0x4ea8ff].map(c => new THREE.Color(c));
+const baseMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.09, 0.09, 0.62), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.35, roughness: .5 }), STRAND_N);
+baseMesh.frustumCulled = false; scene.add(baseMesh);
+const strandFrames = [];
+for (let k = 0; k < STRAND_N; k++) {
+  const f = (k + 0.5) / STRAND_N, p = strandCurve.getPointAt(f), tg = strandCurve.getTangentAt(f);
+  const out = new THREE.Vector3(p.x, 0, p.z).normalize();
+  const side = new THREE.Vector3().crossVectors(tg, out).normalize();
+  const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), side);
+  strandFrames.push({ p: p.clone().addScaledVector(side, 0.33), q });
+  baseMesh.setColorAt(k, BASE_COL[Math.floor(hash(k * 7.7) * 4)]);
+}
+const lblMrna = makeLabel('mRNA', '#8fd8ff');
+// vial
+const vial = new THREE.Group(); scene.add(vial);
+{
+  const glass = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.0, 3.0, 40, 1, true), new THREE.MeshStandardMaterial({ color: 0xcfefff, transparent: true, opacity: 0.32, roughness: .05, metalness: .1, side: THREE.DoubleSide }));
+  glass.position.y = 1.5;
+  const liquid = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 1.9, 40), new THREE.MeshStandardMaterial({ color: 0x7dd3ff, emissive: 0x2a8fd0, emissiveIntensity: 0.8, roughness: .2, transparent: true, opacity: 0.9 }));
+  liquid.position.y = 0.98;
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 1.0, 0.45, 40), glass.material); neck.position.y = 3.2;
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.72, 0.55, 40), new THREE.MeshStandardMaterial({ color: 0xff7a59, roughness: .4, metalness: .3 })); cap.position.y = 3.68;
+  const label = new THREE.Mesh(new THREE.CylinderGeometry(1.01, 1.01, 0.9, 40, 1, true), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .6 })); label.position.y = 1.3;
+  vial.add(liquid, glass, neck, cap, label);
+  vial.traverse(o => { if (o.isMesh) o.castShadow = true; });
+}
+// shipped mini vials
+const MINI = 60;
+const miniMesh = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.14, 0.14, 0.42, 10), new THREE.MeshStandardMaterial({ color: 0x9fe0ff, emissive: 0x3aa0e0, emissiveIntensity: 1.2, roughness: .3 }), MINI);
+miniMesh.frustumCulled = false; scene.add(miniMesh);
+
+// people
+const PEOPLE = [];
+{
+  for (let k = 0; k < 2000 && PEOPLE.length < 300; k++) {
+    const r = Math.sqrt(lerp(5.9 * 5.9, (PR - 0.2) ** 2, rnd())), a = rnd() * Math.PI * 2;
+    const p = new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r);
+    if (Math.abs(p.x) < 0.6) continue; // keep the future crack line clear
+    if (PEOPLE.some(q => q.home.distanceTo(p) < 0.95)) continue;
+    PEOPLE.push({ home: p, rot: rnd() * Math.PI * 2, s: 0.88 + rnd() * 0.24 });
+  }
+  const sorted = PEOPLE.map((P, k) => k).sort((a, b) => hash(a * 3.1) - hash(b * 3.1));
+  const nV = Math.round(PEOPLE.length * 0.72);
+  sorted.forEach((idx, rank) => { const P = PEOPLE[idx]; P.vacc = rank < nV; P.vt = P.vacc ? 4.04 + (rank / nV) * 0.82 : 99; });
+  PEOPLE.forEach((P, k) => { P.tint = new THREE.Color().setHSL(0.6 + hash(k) * 0.05, 0.12, 0.62 + hash(k + 3) * 0.1); });
+}
+const NP = PEOPLE.length;
+const personGeo = (() => {
+  const body = new THREE.CapsuleGeometry(0.2, 0.42, 4, 10); body.translate(0, 0.42, 0);
+  const head = new THREE.SphereGeometry(0.17, 14, 10); head.translate(0, 0.98, 0);
+  return mergeGeometries([body.toNonIndexed(), head.toNonIndexed()].map(g => { g.deleteAttribute('uv'); return g; }));
+})();
+const peopleMesh = new THREE.InstancedMesh(personGeo, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .55 }), NP);
+peopleMesh.castShadow = true; peopleMesh.receiveShadow = true; peopleMesh.frustumCulled = false; scene.add(peopleMesh);
+const addMat = () => new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+const shieldGeo = new THREE.RingGeometry(0.36, 0.5, 28); shieldGeo.rotateX(-Math.PI / 2);
+const shieldMesh = new THREE.InstancedMesh(shieldGeo, addMat(), NP); shieldMesh.frustumCulled = false; scene.add(shieldMesh);
+const jabGeo = new THREE.CylinderGeometry(0.1, 0.1, 1, 8, 1, true); jabGeo.translate(0, 0.5, 0);
+const jabMesh = new THREE.InstancedMesh(jabGeo, addMat(), NP); jabMesh.frustumCulled = false; scene.add(jabMesh);
+for (let k = 0; k < NP; k++) { shieldMesh.setColorAt(k, new THREE.Color(0)); jabMesh.setColorAt(k, new THREE.Color(0)); }
+
+// gates (pressure chapter)
+const GATES = [new THREE.Vector3(-2.9, 0, PR + 2.2), new THREE.Vector3(2.9, 0, PR + 2.2)];
+const gateGroups = GATES.map((gp, k) => {
+  const g = new THREE.Group(); g.position.copy(gp); scene.add(g);
+  const mat = new THREE.MeshStandardMaterial({ color: 0xe8edf5, roughness: .5 });
+  const l = new THREE.Mesh(new THREE.BoxGeometry(0.35, 3.0, 0.35), mat); l.position.set(-1.6, 1.5, 0);
+  const r = l.clone(); r.position.x = 1.6;
+  const top = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.45, 0.45), new THREE.MeshStandardMaterial({ color: k ? 0x4ea8ff : 0xffc145, roughness: .4, emissive: k ? 0x1a4a90 : 0x8a5a00, emissiveIntensity: 0.6 }));
+  top.position.y = 3.1;
+  const barMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xffc145).multiplyScalar(2), transparent: true, opacity: 0, toneMapped: false });
+  const bar = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.12, 0.12), barMat); bar.position.y = 1.0;
+  g.add(l, r, top, bar); g.userData.bar = barMat;
+  g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  g.userData.lbl = makeLabel(k ? 'SCHOOL' : 'WORK', k ? '#8fd8ff' : '#ffc145');
+  return g;
+});
+// pressure assignments: the people nearest the gates walk up
+{
+  const cand = PEOPLE.map((P, k) => k).filter(k => PEOPLE[k].home.z > 4).sort((a, b) => PEOPLE[b].home.z - PEOPLE[a].home.z).slice(0, 56);
+  const lanes = [[], []];
+  for (const k of cand) lanes[PEOPLE[k].home.x < 0 ? 0 : 1].push(k);
+  lanes.forEach((lane, gi) => {
+    lane.sort((a, b) => PEOPLE[b].home.z - PEOPLE[a].home.z);
+    let passN = 0, waitN = 0;
+    lane.forEach((k, n) => {
+      const P = PEOPLE[k]; P.gate = gi; P.qd = 0.12 + n * 0.012;
+      if (P.vacc) { const m = passN++; P.target = new THREE.Vector3(GATES[gi].x + ((m % 3) - 1) * 0.9, 0, GATES[gi].z + 1.6 + Math.floor(m / 3) * 0.9); }
+      else { const m = waitN++; P.target = new THREE.Vector3(GATES[gi].x + ((m % 3) - 1) * 0.9, 0, GATES[gi].z - 1.2 - Math.floor(m / 3) * 0.9); P.blocked = true; }
+    });
+  });
+}
+// virus particles in the plaza (controversy, aftermath)
+const VN = 48;
+const vMesh = new THREE.InstancedMesh(virusGeo, new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.55, roughness: .4 }), VN);
+vMesh.frustumCulled = false; vMesh.castShadow = true; scene.add(vMesh);
+const VARIANT_COL = [0xff4a5a, 0xc084fc, 0xffc145, 0x62d3e6].map(c => new THREE.Color(c));
+const lblVar = makeLabel('NEW VARIANTS', '#c084fc');
+// science dome + study scan
+const domeMat = new THREE.ShaderMaterial({
+  transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, uniforms: { a: { value: 0 } },
+  vertexShader: 'varying vec3 vN; varying vec3 vV; varying float vY; void main(){ vY = position.y; vN = normalize(normalMatrix*normal); vec4 mv = modelViewMatrix*vec4(position,1.0); vV = normalize(-mv.xyz); gl_Position = projectionMatrix*mv; }',
+  fragmentShader: 'uniform float a; varying vec3 vN; varying vec3 vV; varying float vY; void main(){ float f = pow(1.0-abs(dot(vN,vV)),2.0); float grid = step(0.94, fract(vY*1.4)); gl_FragColor = vec4(vec3(0.3,0.8,1.0)*(0.12+f*0.9+grid*0.25)*a, 1.0); }'
+});
+const dome = new THREE.Mesh(new THREE.SphereGeometry(PR + 0.8, 64, 24, 0, Math.PI * 2, 0, Math.PI / 2), domeMat); scene.add(dome);
+const scan = new THREE.Mesh(new THREE.TorusGeometry(1, 0.06, 8, 128), new THREE.MeshBasicMaterial({ color: new THREE.Color(0x8fd8ff).multiplyScalar(2.2), transparent: true, toneMapped: false }));
+scan.rotation.x = Math.PI / 2; scene.add(scan);
+const sparkMesh = new THREE.InstancedMesh(new THREE.SphereGeometry(0.22, 12, 8), new THREE.MeshBasicMaterial({ color: new THREE.Color(0xff9f6b).multiplyScalar(3), toneMapped: false }), 4);
+sparkMesh.frustumCulled = false; scene.add(sparkMesh);
+const sparkPeople = PEOPLE.map((P, k) => k).filter(k => PEOPLE[k].vacc && !PEOPLE[k].gate && PEOPLE[k].home.z < 0).slice(0, 4);
+
+// =====================================================================
+// update
+// =====================================================================
+const C_SPACE_T = new THREE.Color(0x02030a), C_SPACE_B = new THREE.Color(0x060a1c);
+const C_DUSK_T = new THREE.Color(0x15224a), C_DUSK_B = new THREE.Color(0x6a6f9a);
+const C_DAY_T = new THREE.Color(0x3f7fd0), C_DAY_B = new THREE.Color(0xc9d8ee);
+const C_END_T = new THREE.Color(0x0b1026), C_END_B = new THREE.Color(0x4a3a5a);
+const C_UNV = new THREE.Color(0xb7bccb), C_VAX = new THREE.Color(0x3d9bff), C_HIT = new THREE.Color(0xff7a3c), C_BLOCK = new THREE.Color(0xffc145);
+const _col = new THREE.Color(), _c2 = new THREE.Color();
+const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _v = new THREE.Vector3(), _s = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3();
+const UP = new THREE.Vector3(0, 1, 0);
+const inGlobe = b => b < 2;
+
+function globeSpin(b) {
+  // face Wuhan, then turn west (Europe, then the Americas) during the spread
+  const base = -Math.atan2(wuhanV.x, wuhanV.z);
+  return base + 0.12 * (b + 1) + smooth(ramp(b, 1.0, 1.95)) * 3.2;
+}
+
+function updateGlobe(t, b) {
+  globe.rotation.y = globeSpin(b);
+  globeTilt.rotation.x = lerp(0.42, 0.3, ramp(b, 0.5, 1.6));
+  const hot = ramp(b, 1.55, 1.8);
+  DOTS.forEach((d, k) => {
+    const f = ramp(b, d.t0, d.t0 + 0.06);
+    const s = f <= 0 ? 0 : easeOutBack(f) * (d.big ? 2.6 : 1) * (1 + 0.35 * hot * Math.sin(t * 6 + k));
+    _m.compose(d.v, _q.identity(), _s.set(s, s, s)); dotMesh.setMatrixAt(k, _m);
+    _col.copy(C_DOT).lerp(C_DOT_HOT, hot * hash(k * 1.7)); dotMesh.setColorAt(k, _col);
+  });
+  dotMesh.instanceMatrix.needsUpdate = true; dotMesh.instanceColor.needsUpdate = true;
+  pulseRings.forEach((r, k) => {
+    const on = ramp(b, 0.1, 0.2) * (1 - ramp(b, 1.6, 1.9));
+    const ph = ((t * 0.55 + k / 3) % 1);
+    r.scale.setScalar(0.25 + ph * 1.6); r.material.opacity = on * (1 - ph) * 0.9; r.visible = on > 0.01;
+  });
+  ARCS.forEach(a => {
+    const f = ramp(b, a.userData.t0, a.userData.t0 + 0.22);
+    a.geometry.setDrawRange(0, Math.floor(f * a.userData.count / 3) * 3);
+    a.material.opacity = 1 - 0.5 * ramp(b, 1.7, 1.95);
+    a.visible = f > 0;
+  });
+  globe.updateMatrixWorld();
+  placeLabel(lblWuhan, _v.copy(ll(...WUHAN, GR + 2.4)).applyMatrix4(globe.matrixWorld), ramp(b, 0.35, 0.45) * (1 - ramp(b, 0.9, 1.0)), 0.5);
+}
+
+function personPos(out, P, t, b) {
+  out.copy(P.home);
+  if (P.target) {
+    const go = smooth(ramp(b, 6.06 + P.qd, 6.5 + P.qd)) * (1 - smooth(ramp(b, 7.02, 7.35)));
+    out.lerp(P.target, go);
+  }
+  const split = smooth(ramp(b, 8.12, 8.5));
+  out.x += Math.sign(P.home.x) * split * 1.6;
+  return out;
+}
+
+function updatePlaza(t, b) {
+  const split = smooth(ramp(b, 8.12, 8.5));
+  groundL.position.x = -split * 1.6; groundR.position.x = split * 1.6;
+  groundL.rotation.z = split * 0.03; groundR.rotation.z = -split * 0.03;
+  crack.scale.x = 0.2 + split * 2.6; crackMat.opacity = split * (0.45 + 0.15 * Math.sin(t * 4));
+  ringLines.forEach(r => { r.material.opacity = 0.25 * (1 - split); });
+
+  // mRNA strand builds (ch3), then shrinks into the vial (ch4)
+  const build = ramp(b, 2.05, 2.75), into = smooth(ramp(b, 3.0, 3.3));
+  backbone.geometry.setDrawRange(0, Math.floor(build * backbone.userData.count / 3) * 3);
+  backbone.visible = build > 0 && into < 0.99;
+  const sScale = 1 - into;
+  backbone.scale.setScalar(Math.max(sScale, 0.001)); backbone.position.y = into * 2.2;
+  backbone.rotation.y = t * 0.35; baseMesh.rotation.y = t * 0.35;
+  baseMesh.scale.setScalar(Math.max(sScale, 0.001)); baseMesh.position.y = into * 2.2;
+  strandFrames.forEach((fr, k) => {
+    const f = ramp(build * STRAND_N - k, 0, 2.5), s = easeOutBack(f);
+    _m.compose(fr.p, fr.q, _s.set(s, s, s)); baseMesh.setMatrixAt(k, _m);
+  });
+  baseMesh.instanceMatrix.needsUpdate = true; baseMesh.visible = build > 0 && into < 0.99;
+  placeLabel(lblMrna, _v.set(0, 7.6, 0), ramp(b, 2.3, 2.4) * (1 - ramp(b, 2.9, 3.0)), 0.8);
+
+  const vRise = easeOutBack(ramp(b, 3.05, 3.4)) * (1 - smooth(ramp(b, 4.5, 4.9)));
+  vial.visible = vRise > 0.01; vial.scale.setScalar(Math.max(vRise, 0.001)); vial.position.y = 0.6; vial.rotation.y = t * 0.3;
+  
+  // mini vials shipped out to the crowd
+  for (let k = 0; k < MINI; k++) {
+    const t0 = 3.55 + (k / MINI) * 0.9, f = ramp(b, t0, t0 + 0.25);
+    if (f <= 0 || f >= 1) { _m.makeScale(0, 0, 0); miniMesh.setMatrixAt(k, _m); continue; }
+    const P = PEOPLE[Math.floor(hash(k * 5.3) * NP)];
+    _a.set(0, 3.5, 0); _b.copy(P.home).setY(1.2);
+    _v.lerpVectors(_a, _b, f); _v.y += Math.sin(Math.PI * f) * 4;
+    _q.setFromAxisAngle(_s.set(1, 0, 0), f * 6 + k);
+    const s = Math.min(1, Math.sin(Math.PI * f) * 3);
+    _m.compose(_v, _q, _s.set(s, s, s)); miniMesh.setMatrixAt(k, _m);
+  }
+  miniMesh.instanceMatrix.needsUpdate = true;
+
+  // controversy: virus particles hop between people (vaccinated people can still be infected)
+  const hits = new Float32Array(NP);
+  const ctr = ramp(b, 5.05, 5.25) * (1 - ramp(b, 5.92, 6.05));
+  const variants = ramp(b, 8.35, 8.55);
+  for (let k = 0; k < VN; k++) {
+    if (k < 30 && ctr > 0.01) {
+      const P0 = 1.4 + hash(k) * 0.6, u = t / P0 + hash(k + 9), cyc = Math.floor(u), pr = u - cyc;
+      const ia = Math.floor(hash(k * 3 + cyc * 7.1) * NP), ib = Math.floor(hash(k * 5 + cyc * 3.3 + 1) * NP);
+      personPos(_a, PEOPLE[ia], t, b).setY(1.1); personPos(_b, PEOPLE[ib], t, b).setY(1.1);
+      _v.lerpVectors(_a, _b, pr); _v.y += Math.sin(Math.PI * pr) * (1.2 + _a.distanceTo(_b) * 0.15);
+      const s = ctr * Math.min(1, Math.sin(Math.PI * pr) * 3) * 1.1;
+      _q.setFromAxisAngle(_s.set(0.3, 1, 0.2).normalize(), t * 2 + k);
+      _m.compose(_v, _q, _s.set(s, s, s)); vMesh.setMatrixAt(k, _m); vMesh.setColorAt(k, VARIANT_COL[0]);
+      if (pr > 0.85) hits[ib] = Math.max(hits[ib], ctr * ramp(pr, 0.85, 0.95));
+      if (pr < 0.25) hits[ia] = Math.max(hits[ia], ctr * (1 - ramp(pr, 0.05, 0.25)) * 0.6);
+    } else if (variants > 0.01 && k >= 30) {
+      const a = hash(k * 2.3) * Math.PI * 2 + t * (0.08 + hash(k) * 0.1), r = 4 + hash(k * 7) * 11;
+      _v.set(Math.cos(a) * r, 3.2 + hash(k * 11) * 3.5 + Math.sin(t * 1.3 + k) * 0.4, Math.sin(a) * r);
+      const s = variants * (0.8 + hash(k * 13) * 0.5);
+      _q.setFromAxisAngle(_s.set(0.3, 1, 0.2).normalize(), t + k);
+      _m.compose(_v, _q, _s.set(s, s, s)); vMesh.setMatrixAt(k, _m); vMesh.setColorAt(k, VARIANT_COL[k % 4]);
+    } else { _m.makeScale(0, 0, 0); vMesh.setMatrixAt(k, _m); }
+  }
+  vMesh.instanceMatrix.needsUpdate = true; if (vMesh.instanceColor) vMesh.instanceColor.needsUpdate = true;
+  placeLabel(lblVar, _v.set(0, 6.5, 0), ramp(b, 8.45, 8.55), 0.85);
+
+  // gates
+  const gOn = easeOutBack(ramp(b, 5.95, 6.15)) * (1 - smooth(ramp(b, 7.05, 7.3)));
+  gateGroups.forEach((g, k) => {
+    g.visible = gOn > 0.01; g.scale.set(1, Math.max(gOn, 0.001), 1);
+    g.userData.bar.opacity = ramp(b, 6.45, 6.55) * (0.7 + 0.3 * Math.sin(t * 5));
+    placeLabel(g.userData.lbl, _v.copy(GATES[k]).setY(4.4), ramp(b, 6.12, 6.2) * (1 - ramp(b, 6.95, 7.05)), 0.85);
+  });
+
+  // dome (science)
+  const dm = smooth(ramp(b, 7.05, 7.35)) * (1 - smooth(ramp(b, 7.95, 8.1)));
+  domeMat.uniforms.a.value = dm; dome.visible = dm > 0.01; dome.scale.set(1, Math.max(0.001, dm), 1);
+  const sc = ramp(b, 7.1, 7.9);
+  scan.visible = sc > 0 && sc < 1; scan.scale.setScalar(1 + sc * (PR + 1)); scan.position.y = 0.3; scan.material.opacity = 1 - sc;
+  sparkPeople.forEach((pi, k) => {
+    const on = pulse(b, 7.5 + k * 0.05, 7.98, 0.05, 0.06);
+    personPos(_v, PEOPLE[pi], t, b).setY(1.5 + 0.1 * Math.sin(t * 6 + k));
+    const s = on * (1 + 0.25 * Math.sin(t * 8 + k));
+    _m.compose(_v, _q.identity(), _s.set(s, s, s)); sparkMesh.setMatrixAt(k, _m);
+  });
+  sparkMesh.instanceMatrix.needsUpdate = true;
+
+  // people
+  const wane = 1 - 0.68 * smooth(ramp(b, 5.25, 5.95));
+  PEOPLE.forEach((P, k) => {
+    personPos(_v, P, t, b);
+    const walking = P.target ? Math.abs(ramp(b, 6.06 + P.qd, 6.5 + P.qd) - 0.5) < 0.5 || Math.abs(ramp(b, 7.02, 7.35) - 0.5) < 0.5 : false;
+    _v.y += walking ? Math.abs(Math.sin(t * 9 + k)) * 0.08 : Math.max(0, Math.sin(t * 2.2 + k * 1.3)) * 0.02;
+    let rot = P.rot;
+    if (P.target) rot = lerp(P.rot, Math.PI * 0 + Math.atan2(P.target.x - P.home.x, P.target.z - P.home.z), smooth(ramp(b, 6.0, 6.1)) * (1 - ramp(b, 7.0, 7.1)));
+    _q.setFromAxisAngle(UP, rot);
+    _m.compose(_v, _q, _s.set(P.s, P.s, P.s)); peopleMesh.setMatrixAt(k, _m);
+
+    const vac = ramp(b, P.vt, P.vt + 0.03);
+    _col.copy(P.tint).lerp(C_VAX, vac * 0.85);
+    _col.lerp(C_HIT, clamp(hits[k] * 1.2));
+    if (P.blocked) _col.lerp(C_BLOCK, 0.6 * ramp(b, 6.45, 6.55) * (1 - ramp(b, 7.0, 7.1)));
+    peopleMesh.setColorAt(k, _col);
+
+    // shield ring: pops at vaccination, wanes during the controversy, fades out later
+    const sh = vac * wane * (1 - ramp(b, 6.0, 6.2)) * (1 + 1.5 * Math.exp(-(b - P.vt) * 30) * (b > P.vt ? 1 : 0));
+    _a.copy(_v).setY(0.05);
+    const ss = vac > 0 ? (0.8 + 0.6 * Math.exp(-Math.max(0, b - P.vt) * 25)) : 0;
+    _m.compose(_a, _q.identity(), _s.set(ss, 1, ss)); shieldMesh.setMatrixAt(k, _m);
+    shieldMesh.setColorAt(k, _c2.copy(C_VAX).multiplyScalar(1.6 * sh));
+    const jab = b > P.vt ? Math.exp(-(b - P.vt) * 14) : 0;
+    _m.compose(_a, _q.identity(), _s.set(1, 6 * clamp((b - P.vt) * 40), 1)); jabMesh.setMatrixAt(k, _m);
+    jabMesh.setColorAt(k, _c2.copy(C_VAX).multiplyScalar(2.2 * jab));
+  });
+  peopleMesh.instanceMatrix.needsUpdate = true; peopleMesh.instanceColor.needsUpdate = true;
+  shieldMesh.instanceMatrix.needsUpdate = true; shieldMesh.instanceColor.needsUpdate = true;
+  jabMesh.instanceMatrix.needsUpdate = true; jabMesh.instanceColor.needsUpdate = true;
+}
+
+function updateWorld(t, b) {
+  const g = inGlobe(b);
+  // sky
+  if (g) { skyMat.uniforms.top.value.copy(C_SPACE_T); skyMat.uniforms.bot.value.copy(C_SPACE_B); }
+  else {
+    const day = smooth(ramp(b, 3.6, 4.6)) * (1 - smooth(ramp(b, 7.9, 8.4)));
+    const end = smooth(ramp(b, 7.9, 8.4));
+    skyMat.uniforms.top.value.copy(C_DUSK_T).lerp(C_DAY_T, day).lerp(C_END_T, end);
+    skyMat.uniforms.bot.value.copy(C_DUSK_B).lerp(C_DAY_B, day).lerp(C_END_B, end);
+    hemi.intensity = lerp(0.9, 1.7, day) * (1 - 0.35 * end);
+    sun.intensity = lerp(1.6, 3.2, day) * (1 - 0.4 * end);
+    sun.color.set(0xb8c8ff).lerp(_col.set(0xfff0dc), day);
+    bloom.strength = lerp(0.7, 0.35, day) + 0.25 * end;
+  }
+  starMat.opacity = g ? 1 : 0; starMat.visible = g;
+  scene.fog.near = g ? 1e5 : 60; scene.fog.far = g ? 2e5 : 170;
+  scene.fog.color.copy(skyMat.uniforms.bot.value);
+  if (g) { hemi.intensity = 1.4; sun.intensity = 2.0; sun.color.set(0xffffff); bloom.strength = 0.9; }
+  globeTilt.visible = g;
+  updateGlobe(t, b);
+  updatePlaza(t, b);
+}
+
+// ---------- camera ----------
+// plaza keys: [radius, elevation°, azimuth°, targetX, targetY, targetZ] at beat 2 .. 10
+const PKEYS = [
+  [12, 14, 20, 0, 3.8, 0],     // 2 vaccine development (strand)
+  [13, 16, 55, 0, 3.0, 0],     // 3 emergency approval (vial)
+  [32, 44, 85, 0, 0, 0],       // 4 campaign
+  [19, 30, 125, 2, 0.6, 3],    // 5 controversy
+  [29, 22, 0, 0, 1.5, 13],     // 6 pressure (from outside the gates)
+  [44, 46, 150, 0, 2, 0],      // 7 science (dome)
+  [36, 34, 186, 0, 1, 0],      // 8 aftermath (looking down the crack)
+  [48, 42, 215, 0, 1, 0],      // 9 outro
+  [56, 48, 240, 0, 1, 0],      // 10 end
+];
+function cr(p0, p1, p2, p3, f) { const f2 = f * f, f3 = f2 * f; return 0.5 * ((2 * p1) + (-p0 + p2) * f + (2 * p0 - 5 * p1 + 4 * p2 - p3) * f2 + (-p0 + 3 * p1 - 3 * p2 + p3) * f3); }
+const _tgt = new THREE.Vector3();
+function updateCamera(b) {
+  if (inGlobe(b)) {
+    // globe: camera in front of the globe, pushing in on Wuhan, then out for the spread
+    const r = b < 0 ? lerp(62, 40, smooth(ramp(b, -1, 0))) : b < 1 ? lerp(40, 29, smooth(ramp(b, 0, 0.7))) : lerp(29, 39, smooth(ramp(b, 1.0, 1.4)));
+    const el = lerp(10, 2, ramp(b, -1, 1));
+    _tgt.copy(G0).add(_v.set(0, b < 1 ? lerp(0, 1.2, ramp(b, 0, 0.7)) : lerp(1.2, -1.0, ramp(b, 1.0, 1.4)), 0));
+    camera.position.set(G0.x + Math.sin(0.15 * b) * r * 0.2, _tgt.y + r * Math.sin(el * Math.PI / 180), G0.z + r);
+    camera.lookAt(_tgt);
+  } else {
+    const u = clamp(b - 2.4, 0, PKEYS.length - 1.0001), k = Math.floor(u), f = u - k;
+    const K = i => PKEYS[clamp(i, 0, PKEYS.length - 1)];
+    const v = [0, 1, 2, 3, 4, 5].map(c => cr(K(k - 1)[c], K(k)[c], K(k + 1)[c], K(k + 2)[c], f));
+    const [r, el, az] = [v[0], v[1] * Math.PI / 180, v[2] * Math.PI / 180];
+    _tgt.set(v[3], v[4], v[5]);
+    camera.position.set(_tgt.x + r * Math.cos(el) * Math.sin(az), _tgt.y + r * Math.sin(el), _tgt.z + r * Math.cos(el) * Math.cos(az));
+    camera.lookAt(_tgt);
+  }
+  sky.position.copy(camera.position);
+  sun.position.copy(inGlobe(b) ? G0 : new THREE.Vector3()).add(_v.set(18, 30, 26)); sun.target.position.copy(inGlobe(b) ? G0 : _v.set(0, 0, 0)); sun.target.updateMatrixWorld();
+}
+
+// ---------- post ----------
+const rt = new THREE.WebGLRenderTarget(W, H, { samples: 4, type: THREE.HalfFloatType });
+const composer = new EffectComposer(renderer, rt);
+composer.setPixelRatio(1); composer.setSize(W, H);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(W / 2, H / 2), 0.8, 0.45, 0.82);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+// ---------- overlay ----------
+const $ = id => document.getElementById(id);
+const el = {
+  mon: $('mon'), num: $('num'), counter: $('counter'), phase: $('phase'), barFill: $('barFill'), bar: $('bar'), chip: $('chip'), chipVal: $('chipVal'),
+  cap: $('cap'), capBox: $('capBox'), intro: $('intro'), hud: $('hud'), sci: $('science'), sci1: $('sci1'), sci2: $('sci2'), sources: $('sources'), fade: $('fade'),
+};
+const introWords = [...document.querySelectorAll('#intro .t .w')];
+const tickX = i => i / (CHAPTERS.length - 1) * 780;
+const ticks = CHAPTERS.map((_, i) => { const d = document.createElement('div'); d.className = 'tick'; d.style.left = tickX(i) + 'px'; el.bar.appendChild(d); return d; });
+const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+// world vaccine doses (billions), rounded from Our World in Data; keyed by month start
+const DOSES = [[M(2020, 12), 0], [M(2021, 1), 0.012], [M(2021, 7), 3.1], [M(2021, 9), 5.4], [M(2021, 12), 8.3], [M(2023, 1), 13.1], [M(2024, 1), 13.6], [M(2027, 1), 13.6]];
+function dosesAt(m) {
+  if (m <= DOSES[0][0]) return 0;
+  for (let k = 0; k < DOSES.length - 1; k++) { const [a, va] = DOSES[k], [bb, vb] = DOSES[k + 1]; if (m < bb) return lerp(va, vb, (m - a) / (bb - a)); }
+  return DOSES[DOSES.length - 1][1];
+}
+const fmtDoses = v => v <= 0 ? '0' : v < 1 ? `≈ ${Math.max(1, Math.round(v * 1000))} MILLION` : `≈ ${v.toFixed(1)} BILLION`;
+
+// callouts: [id, from beat, to beat]
+const CALLOUTS = [['coLock', 1.45, 1.98], ['coHosp', 1.6, 1.98], ['coRes', 2.45, 2.98], ['coEua', 3.42, 3.98], ['coSev', 4.5, 4.97], ['coStop', 5.2, 5.56], ['mInf', 5.6, 5.98],
+  ['coReq', 6.3, 6.97], ['coFree', 6.6, 6.97], ['mSev', 7.15, 7.97], ['mSide', 7.55, 7.97], ['coTrust', 8.18, 8.55], ['coStudy', 8.45, 8.97]].map(([id, a, z]) => ({ el: $(id), a, z }));
+const fillOf = id => $(id).querySelector('.fill');
+
+let pageIdx = -2, capWords = [];
+function setPage(k) {
+  pageIdx = k; el.capBox.innerHTML = ''; capWords = [];
+  if (k < 0) return;
+  const P = PAGES[k];
+  P.words.forEach((w, n) => {
+    const s = document.createElement('span'); s.className = 'w' + (w.hl ? ' hl' : ''); s.textContent = w.text + (n < P.words.length - 1 ? ' ' : '');
+    el.capBox.appendChild(s); capWords.push(s);
+  });
+}
+
+function monthAt(t, b) {
+  if (b < 0) return CHAPTERS[0].from;
+  const i = clamp(Math.floor(b), 0, CHAPTERS.length - 1), c = CHAPTERS[i], prev = i ? CHAPTERS[i - 1].to : c.from;
+  const lt = t - c.start;
+  if (lt < 0.5 && i) return lerp(prev, c.from, smooth(ramp(lt, 0, 0.5)));
+  return lerp(c.from, c.to, smooth(ramp(lt, c.d * 0.12, c.d * 0.85)));
+}
+
+function updateOverlay(t, b) {
+  // intro card
+  const io = 1 - ramp(t, INTRO - 0.55, INTRO);
+  el.intro.style.opacity = io; el.intro.style.display = io > 0.001 ? 'flex' : 'none';
+  el.intro.style.transform = `scale(${1 + 0.04 * (1 - io)})`;
+  introWords.forEach((w, k) => { const f = ramp(t, LEAD + 0.9 + k * 0.35, LEAD + 1.15 + k * 0.35); w.style.opacity = 0.15 + 0.85 * f; w.style.transform = `translateY(${(1 - easeOut(f)) * 16}px)`; });
+  const outro = t >= OUTRO_START, ot = t - OUTRO_START;
+  el.hud.style.opacity = clamp(1 - io * 1.2) * (outro ? lerp(1, 0.5, ramp(ot, 0, 0.6)) : 1);
+
+  // chapter cut (globe -> plaza)
+  const cutT = CHAPTERS[2].start;
+  el.fade.style.opacity = 1 - ramp(Math.abs(t - cutT), 0.05, 0.4);
+
+  // counter
+  const i = clamp(Math.floor(Math.max(b, 0)), 0, CHAPTERS.length - 1);
+  const m = monthAt(t, b), mi = Math.round(m);
+  const today = CHAPTERS[i].today && t - CHAPTERS[i].start > CHAPTERS[i].d * 0.86 || outro;
+  if (today) { el.mon.style.display = 'none'; el.num.textContent = 'TODAY'; }
+  else { el.mon.style.display = ''; el.mon.textContent = MONTHS[((mi % 12) + 12) % 12]; el.num.textContent = String(Math.floor(mi / 12)); }
+  const lt = t < INTRO ? 0 : t - CHAPTERS[i].start;
+  const pop = t >= INTRO ? 0.07 * Math.sin(Math.PI * ramp(lt, 0, 0.45)) : 0;
+  el.counter.style.transform = `scale(${1 + pop})`;
+  el.phase.innerHTML = `<span class="n">${i + 1}/9</span>${CHAPTERS[i].name}`;
+  el.phase.style.opacity = t < INTRO ? 0 : 1;
+
+  // progress
+  const prog = outro ? 780 : t < INTRO ? 0 : lerp(tickX(i), i + 1 < CHAPTERS.length ? tickX(i + 1) : 780, smooth(ramp(lt, 0, CHAPTERS[i].d)));
+  el.barFill.style.width = prog + 'px';
+  ticks.forEach((d, k) => d.classList.toggle('on', t >= INTRO && k <= i));
+
+  // doses chip
+  el.chipVal.textContent = fmtDoses(dosesAt(m));
+
+  // callouts
+  for (const c of CALLOUTS) {
+    const f = ramp(b, c.a, c.a + 0.06) * (1 - ramp(b, c.z - 0.05, c.z));
+    c.el.style.opacity = f; c.el.style.marginTop = `${(1 - easeOut(ramp(b, c.a, c.a + 0.06))) * 24}px`;
+  }
+  fillOf('mInf').style.width = `${lerp(92, 30, smooth(ramp(b, 5.62, 5.92)))}%`;
+  fillOf('mSev').style.width = `${lerp(0, 86, easeOut(ramp(b, 7.15, 7.35)))}%`;
+  fillOf('mSide').style.width = `${lerp(0, 3, easeOut(ramp(b, 7.55, 7.7)))}%`;
+
+  // captions
+  let pk = -1;
+  if (!outro) for (let k = 0; k < PAGES.length; k++) if (t >= PAGES[k].start && t < PAGES[k].end) { pk = k; break; }
+  if (pk !== pageIdx) setPage(pk);
+  if (pk >= 0) {
+    const P = PAGES[pk], lt2 = t - P.start;
+    el.cap.style.opacity = 1 - ramp(t, P.end - 0.12, P.end);
+    el.capBox.style.transform = `translateY(${(1 - easeOut(ramp(lt2, 0, 0.2))) * 24}px)`;
+    el.capBox.style.opacity = ramp(lt2, 0, 0.12);
+    capWords.forEach((s, k) => {
+      const f = ramp(t, P.words[k].t - 0.08, P.words[k].t + 0.08);
+      s.style.opacity = 0.25 + 0.75 * f;
+      s.style.transform = `translateY(${(1 - easeOut(f)) * 10}px) scale(${0.94 + 0.06 * easeOutBack(f)})`;
+    });
+  } else el.cap.style.opacity = 0;
+  // in the intro the title card already shows the words
+  if (t < INTRO) el.cap.style.opacity = 0;
+
+  // science outro
+  el.sci.style.display = outro ? '' : 'none';
+  if (outro) {
+    const a = ramp(ot, 0.2, 0.7) * (1 - ramp(ot, 4.9, 5.3)), c = ramp(ot, 5.3, 5.8) * (1 - ramp(ot, OUTRO - 0.5, OUTRO));
+    el.sci1.style.opacity = a; el.sci1.style.transform = `translateY(${(1 - easeOut(a)) * 40}px)`;
+    el.sci2.style.opacity = c; el.sci2.style.transform = `translateY(${(1 - easeOut(c)) * 40}px)`;
+    el.sources.style.opacity = ramp(ot, 0.6, 1.2) * (1 - ramp(ot, OUTRO - 0.5, OUTRO));
+  }
+}
+
+// ---------- entry points ----------
+window.renderAt = function (t) {
+  const b = beatPos(t);
+  updateCamera(b);
+  updateWorld(t, b);
+  updateOverlay(t, b);
+  composer.render();
+};
+window.__timeline = { INTRO, OUTRO_START, TOTAL, audio: AUDIO, chapters: CHAPTERS.map(c => ({ name: c.name, start: c.start, d: c.d })) };
+
+await document.fonts.ready;
+window.renderAt(0);
+window.__ready = true;
+
+if (!location.search.includes('render')) {
+  const t0 = performance.now();
+  const loop = () => { window.renderAt(((performance.now() - t0) / 1000) % TOTAL); requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>
