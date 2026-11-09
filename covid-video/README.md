@@ -25,7 +25,7 @@ A ~2-minute, 1080×1920 (9:16) 3D explainer rendered with three.js and timed to 
 - `captions.json`: per clip, the duration and each word's start and end time in seconds.
 - `audio/01.mp3` … `audio/10.mp3`: the voiceover clips in order. 01 is the title; 02–10 are chapters 1–9.
 - `render.cjs`: renders frames in headless Chromium, encodes H.264, then mixes each clip in at its timeline position (AAC).
-- `out/covid-vaccines.mp4`: the rendered video with narration.
+- `out/covid-vaccines-web.mp4`: the rendered video with narration (web-size copy; the full-quality `out/covid-vaccines.mp4` is git-ignored).
 
 ## Re-render
 

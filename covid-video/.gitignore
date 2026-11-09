@@ -3,3 +3,5 @@ out/stills/
 out/*.png
 out/*.log
 out/*.silent.mp4
+# full-quality master is too big for GitHub; the committed file is out/covid-vaccines-web.mp4
+out/covid-vaccines.mp4
