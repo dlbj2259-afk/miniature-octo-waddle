@@ -1,0 +1,3 @@
+# Studio autosaves / lock files
+*.rbxl.lock
+*.rbxlx.lock
