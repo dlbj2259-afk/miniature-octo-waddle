@@ -42,7 +42,11 @@ Note: the handles differ between TikTok and Instagram/Facebook. ❓ Pick one nam
 | Behind the render | builds a creator brand, attracts clients | process clip | ❓ |
 
 ## 7. What the data says so far
-- Baseline: ❓ waiting for exports (`report.py --days 180`).
+- Baseline (Meta Business Suite daily overview exports, Aug 16 – Nov 13 2026; account totals, not per post):
+  - Account A (🔎 Facebook: it has a Viewers series): first views Nov 8. 2,928 views and 2,511 viewers over Nov 9–13; daily views rose 520 → 631 → 710 → 772 (Nov 9–12). Nov 13 (294) is probably a partial day. Only 12 interactions in total (~4 per 1,000 views).
+  - Account B (🔎 Instagram: it has a Reach series): first views Nov 12. 343 views, 270 reach over 2 days.
+  - TikTok: no data yet.
+  - Thin baseline: about a week of activity, and no per-post data. Patterns (timing, format, hooks) can't be read yet.
 
 ## 8. Competitors & benchmarks (owner said "you pick"; candidates from web search, stats unverified)
 | account | service | why we watch them |
@@ -64,4 +68,8 @@ Note: the handles differ between TikTok and Instagram/Facebook. ❓ Pick one nam
 - Are the TikTok and IG/FB accounts the same content and brand?
 
 ## 11. Learnings
-<!-- none yet -->
+### 2026-11-15 — Reach is growing; engagement is near zero
+- Evidence: Account A daily views went 520 → 772 (Nov 9–12, +48%), but there were 12 interactions on 2,928 views (~0.4%).
+- Confidence: low (one week, account totals only)
+- Action: add a reason to comment or share in every video (a question at the end, a "send this to someone who…" line); review per-post data next.
+- Status: hypothesis
