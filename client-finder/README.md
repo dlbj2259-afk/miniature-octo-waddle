@@ -115,7 +115,7 @@ The app is one always-on process: the web server and scheduler run together, wit
 **Render**
 1. Push this repo to GitHub.
 2. Render → New → **Blueprint** → select the repo and branch. Render reads `render.yaml` at the repo root, which builds `client-finder/Dockerfile` with a 1 GB disk at `/data`.
-3. Set `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ANTHROPIC_API_KEY` and `GOOGLE_PLACES_API_KEY` (and the optional keys). `APP_SECRET` is generated for you.
+3. Render asks only for `ADMIN_EMAIL` and `ADMIN_PASSWORD` (`APP_SECRET` is generated). After it's live, paste your Anthropic and Google Places keys in **Agent Settings** inside the app.
 4. Use a **paid always-on instance**. Free instances sleep, which stops the scheduler.
 5. Open the URL, sign in, check **Agent Settings**, and press **Run now** on the prospecting sweep.
 
