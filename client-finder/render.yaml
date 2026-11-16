@@ -1,0 +1,32 @@
+# One-click-ish deploy on Render (https://render.com). A persistent disk keeps the
+# SQLite database across deploys. Fill the "sync: false" secrets in the dashboard.
+services:
+  - type: web
+    name: woogzmadeit-client-finder
+    runtime: docker
+    rootDir: client-finder
+    plan: starter            # needs an always-on instance for the scheduler + a disk
+    healthCheckPath: /healthz
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: APP_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GOOGLE_PLACES_API_KEY
+        sync: false
+      - key: SAM_GOV_API_KEY
+        sync: false
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: TRUST_PROXY
+        value: "true"
+      - key: APP_TIMEZONE
+        value: America/Detroit
