@@ -1,0 +1,593 @@
+<title>Kestrel 5 Build Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky parts index on the left, one reading column; workshop-manual steps with check-offs. */
+:root {
+  --bg: #edf0f3; --surface: #ffffff; --ink: #151a20; --muted: #5a6573; --line: #d5dbe2; --chip: #f2f4f7;
+  --accent: #c94a14; --accent-soft: #fbe7dc;
+  --warn: #9a5b00; --warn-soft: #fff3d6; --ok: #1d7a46;
+  --code-bg: #f5f7f9; --code-ink: #1d2530;
+  --pad-5v: #c0392b; --pad-gnd: #2b2f35; --pad-sig: #2563a8; --pad-vid: #b8860b;
+  --f-display: 'Archivo', 'Inter', system-ui, sans-serif;
+  --f-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1216; --surface: #151a20; --ink: #e6ebf0; --muted: #8d99a7; --line: #262e37; --chip: #1b2128;
+    --accent: #ff8a4c; --accent-soft: #3a2116; --warn: #f2b84b; --warn-soft: #2e2512; --ok: #4fd08a;
+    --code-bg: #0b0f13; --code-ink: #d7dee6;
+    --pad-5v: #ff6b5b; --pad-gnd: #aab4bf; --pad-sig: #6aa8ff; --pad-vid: #f0c048;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1216; --surface: #151a20; --ink: #e6ebf0; --muted: #8d99a7; --line: #262e37; --chip: #1b2128;
+  --accent: #ff8a4c; --accent-soft: #3a2116; --warn: #f2b84b; --warn-soft: #2e2512; --ok: #4fd08a;
+  --code-bg: #0b0f13; --code-ink: #d7dee6;
+  --pad-5v: #ff6b5b; --pad-gnd: #aab4bf; --pad-sig: #6aa8ff; --pad-vid: #f0c048;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--bg); color: var(--ink); }
+body { font-family: var(--f-body); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+.wrap {
+  max-width: 1180px; margin: 0 auto; display: grid; gap: 40px;
+  grid-template-columns: 210px minmax(0, 1fr);
+  padding-block: 28px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; font-size: 13.5px; }
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+nav.toc a { display: flex; justify-content: space-between; gap: 8px; padding: 6px 10px; border-radius: 7px; color: var(--muted); text-decoration: none; }
+nav.toc a:hover { background: var(--chip); color: var(--ink); }
+nav.toc .n { font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+nav.toc .k { font-family: var(--f-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); padding: 0 10px 8px; }
+main { min-width: 0; max-width: 780px; }
+@media (max-width: 860px) {
+  .wrap { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  nav.toc { position: static; }
+  nav.toc ol { display: flex; flex-wrap: wrap; gap: 6px; }
+  nav.toc a { background: var(--surface); border: 1px solid var(--line); }
+  nav.toc .k { display: none; }
+}
+
+.eyebrow { font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.eyebrow b { color: var(--accent); font-weight: 500; }
+h1 { margin: 6px 0 10px; font-family: var(--f-display); font-stretch: 125%; font-weight: 800; font-size: clamp(34px, 5vw, 54px); line-height: .98; letter-spacing: -.02em; text-wrap: balance; }
+h2 { margin: 0; font-family: var(--f-display); font-stretch: 118%; font-weight: 800; font-size: clamp(24px, 3vw, 30px); line-height: 1.1; letter-spacing: -.01em; text-wrap: balance; }
+h3 { margin: 28px 0 8px; font-family: var(--f-display); font-stretch: 110%; font-weight: 700; font-size: 18px; line-height: 1.25; text-wrap: balance; }
+p { margin: 0 0 12px; }
+.lede { font-size: 17px; color: var(--muted); max-width: 62ch; }
+a { color: var(--accent); }
+code { font-family: var(--f-mono); font-size: .88em; background: var(--chip); padding: 1px 5px; border-radius: 4px; }
+section.part { padding-top: 48px; scroll-margin-top: 16px; }
+.parthead { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 2px solid var(--ink); margin-bottom: 18px; }
+.parthead .pn { font-family: var(--f-mono); font-size: 12px; color: var(--accent); letter-spacing: .1em; }
+.parthead .prog { margin-left: auto; font-family: var(--f-mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.callout { border-radius: 10px; padding: 12px 14px; margin: 14px 0; background: var(--warn-soft); color: var(--ink); font-size: 14px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; }
+.callout .t { font-family: var(--f-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--warn); padding-top: 2px; }
+.callout p:last-child, .callout ul:last-child { margin-bottom: 0; }
+.callout ul { margin: 0; padding-left: 18px; }
+.callout.info { background: var(--accent-soft); }
+.callout.info .t { color: var(--accent); }
+
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 28px; }
+@media (max-width: 620px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+.cols h4 { margin: 0 0 4px; font-size: 13px; font-family: var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.cols ul { margin: 0; padding-left: 18px; }
+.cols li { margin-bottom: 3px; }
+
+ol.steps { list-style: none; margin: 0; padding: 0; counter-reset: step; }
+ol.steps > li { counter-increment: step; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 14px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+ol.steps > li::before {
+  content: counter(step, decimal-leading-zero); font-family: var(--f-mono); font-weight: 500; font-size: 13px; color: var(--muted);
+  width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid var(--line); display: grid; place-items: center; font-variant-numeric: tabular-nums;
+}
+ol.steps > li.done::before { content: '✓'; color: var(--surface); background: var(--ok); border-color: var(--ok); font-size: 16px; }
+.step h3 { margin: 6px 0 6px; }
+.step ul { margin: 0 0 10px; padding-left: 18px; }
+.step li { margin-bottom: 4px; }
+.check { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; user-select: none; margin-top: 4px; }
+.check input { width: 17px; height: 17px; accent-color: var(--ok); margin: 0; cursor: pointer; }
+.test { font-size: 13.5px; border-left: 3px solid var(--ok); padding: 4px 0 4px 12px; margin: 8px 0; }
+.test b { color: var(--ok); font-weight: 600; }
+
+.tablewrap { overflow-x: auto; margin: 10px 0 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--f-mono); font-weight: 500; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--chip); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pad { font-family: var(--f-mono); font-size: 12px; font-weight: 500; padding: 1px 6px; border-radius: 4px; border: 1.5px solid currentColor; white-space: nowrap; }
+.p5 { color: var(--pad-5v); } .pg { color: var(--pad-gnd); } .ps { color: var(--pad-sig); } .pv { color: var(--pad-vid); }
+.arrow { color: var(--muted); padding: 0 4px; }
+
+.codeblock { position: relative; margin: 10px 0 16px; border-radius: 10px; background: var(--code-bg); border: 1px solid var(--line); }
+.codeblock .bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 8px 6px 14px; border-bottom: 1px solid var(--line); font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); }
+.codeblock pre { margin: 0; padding: 12px 14px; overflow-x: auto; font-family: var(--f-mono); font-size: 12.5px; line-height: 1.6; color: var(--code-ink); }
+.codeblock .c { color: var(--muted); }
+.copy { font: 500 12px var(--f-body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+.copy:hover { border-color: var(--accent); }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.loop { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px; margin: 14px 0 18px; }
+.loop .node { flex: 1 1 110px; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 9px; padding: 9px 10px; }
+.loop .node b { display: block; font-size: 13.5px; }
+.loop .node span { font-size: 12px; color: var(--muted); line-height: 1.4; display: block; }
+.loop .node.hot { border-color: var(--accent); }
+.loop .sep { align-self: center; color: var(--muted); font-family: var(--f-mono); }
+.loopnote { font-family: var(--f-mono); font-size: 12px; color: var(--muted); margin-top: -10px; margin-bottom: 16px; }
+
+.level { display: inline-block; font-family: var(--f-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); margin-top: 26px; }
+.level + h3 { margin-top: 2px; }
+.files { font-size: 13px; color: var(--muted); }
+footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+</style>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Guide sections">
+    <div class="k">Contents</div>
+    <ol>
+      <li><a href="#start"><span>Before you start</span></a></li>
+      <li><a href="#build"><span>1 · Build it</span><span class="n" data-prog="build"></span></a></li>
+      <li><a href="#wiring"><span>Wiring map</span></a></li>
+      <li><a href="#setup"><span>2 · Set it up</span><span class="n" data-prog="setup"></span></a></li>
+      <li><a href="#code"><span>3 · Code it</span></a></li>
+      <li><a href="#fly"><span>4 · First flight</span><span class="n" data-prog="fly"></span></a></li>
+      <li><a href="#fix"><span>Troubleshooting</span></a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header>
+      <div class="eyebrow"><b>Build guide</b> · Kestrel 5 · 5-inch · 6S</div>
+      <h1>Build, set up and code the Kestrel 5</h1>
+      <p class="lede">This guide takes the parts from the 3D model and turns them into a quad that flies. It runs in order: solder it together, configure it in Betaflight, learn how its flight code works and write your own, then fly it. Tick steps off as you go; your progress stays in this browser.</p>
+    </header>
+
+    <section class="part" id="start">
+      <div class="parthead"><span class="pn">00</span><h2>Before you start</h2></div>
+      <div class="callout"><span class="t">Safety</span>
+        <ul>
+          <li><b>Props off</b> any time a battery is plugged in on the bench. A 5-inch prop at full throttle cuts skin to the bone.</li>
+          <li><b>LiPo batteries</b> can catch fire if punctured, overcharged or shorted. Charge on a fireproof surface, in a LiPo bag, never unattended. Store at 3.8 V per cell.</li>
+          <li>Use a <b>smoke stopper</b> (a fused power lead) for the first power-up of any new solder joint.</li>
+          <li>Solder in a ventilated space and wear eye protection.</li>
+        </ul>
+      </div>
+      <div class="callout info"><span class="t">Rules</span>
+        <p>At about 526 g this quad is over the 250 g line, so most countries require you to register it. In the US you need FAA registration, the free TRUST certificate and Remote ID, and an FPV pilot needs a visual observer next to them. In the EU you register as an operator and complete the online Open category training. Check your own country's rules before the first flight.</p>
+      </div>
+
+      <h3>What you need besides the parts</h3>
+      <div class="cols">
+        <div><h4>Tools</h4><ul>
+          <li>Temperature-controlled soldering iron, 60 W or more, with a chisel tip</li>
+          <li>63/37 leaded solder (0.8 mm) and flux</li>
+          <li>Hex drivers: 1.5, 2.0 and 2.5 mm</li>
+          <li>Multimeter with a continuity beep</li>
+          <li>Smoke stopper, wire strippers, flush cutters</li>
+          <li>Heat shrink, zip ties, blue threadlocker</li>
+          <li>Prop wrench or 8 mm socket for M5 nuts</li>
+        </ul></div>
+        <div><h4>To fly it</h4><ul>
+          <li>Radio transmitter with an ExpressLRS 2.4 GHz module</li>
+          <li>FPV goggles on 5.8 GHz that match your VTX</li>
+          <li>LiPo balance charger (6S capable) and LiPo bag</li>
+          <li>3 or more 6S batteries</li>
+          <li>Spare props, lots of them</li>
+          <li>A simulator (Liftoff, Velocidrone or Uncrashed) to learn to fly first</li>
+        </ul></div>
+      </div>
+      <p style="margin-top:12px">Software is free: <a href="https://app.betaflight.com" target="_blank" rel="noopener">Betaflight Configurator</a>, <a href="https://github.com/ExpressLRS/ExpressLRS-Configurator" target="_blank" rel="noopener">ExpressLRS Configurator</a> and <a href="https://esc-configurator.com" target="_blank" rel="noopener">ESC Configurator</a>. For the coding section you need Python 3.</p>
+    </section>
+
+    <section class="part" id="build">
+      <div class="parthead"><span class="pn">01</span><h2>Build it</h2><span class="prog" data-prog="build"></span></div>
+      <p>Build from the bottom up, the same order as the exploded view in the model. Test each stage before you cover it with the next one: a bad joint is easy to fix now and painful once the stack is closed.</p>
+      <div class="callout info"><span class="t">Soldering</span>
+        <p>Iron at 350–400 °C. Tin the pad first, tin the wire, then hold them together and touch the iron for 2–3 seconds. A good joint is shiny and shaped like a small volcano. Dull and lumpy means cold: reheat it with fresh flux.</p>
+      </div>
+      <ol class="steps" data-part="build">
+        <li class="step"><div>
+          <h3>Prepare the frame</h3>
+          <ul>
+            <li>Lay out every part and check it against the components list in the model.</li>
+            <li>Bolt the four 30 mm standoffs and the two camera side plates to the bottom plate.</li>
+            <li>Optional: sand sharp carbon edges with wet sandpaper. Do it wet and outdoors: carbon dust is harmful to breathe and conducts electricity.</li>
+          </ul>
+          <label class="check"><input type="checkbox" id="b1"> Frame prepared</label>
+        </div></li>
+        <li class="step"><div>
+          <h3>Mount the motors</h3>
+          <ul>
+            <li>Bolt each motor to its arm with four M3 × 8 mm screws through the 16 × 16 mm holes, wires pointing toward the centre.</li>
+            <li>Check screw length: the screw must not reach the copper windings. If it touches, it shorts the motor. Arm (5 mm) plus thread depth in the motor base should leave a gap.</li>
+            <li>Put a drop of blue threadlocker on each screw (metal into metal only).</li>
+            <li>Don't worry about which motor spins which way yet. You fix direction in software later.</li>
+          </ul>
+          <label class="check"><input type="checkbox" id="b2"> Motors mounted</label>
+        </div></li>
+        <li class="step"><div>
+          <h3>Fit the ESC and solder the motors</h3>
+          <ul>
+            <li>Push the rubber grommets into the ESC's mounting holes and fit it on the stack bolts with the arrow pointing forward.</li>
+            <li>Route each motor's three wires along the arm and cut them so they reach their pads with a little slack.</li>
+            <li>Strip 2 mm, tin the wires and the pads, then solder. The order of the three wires does not matter.</li>
+          </ul>
+          <label class="check"><input type="checkbox" id="b3"> Motors soldered to ESC</label>
+        </div></li>
+        <li class="step"><div>
+          <h3>Solder the battery lead and capacitor</h3>
+          <ul>
+            <li>Solder the XT60 pigtail to the big battery pads at the rear of the ESC: <span class="pad p5">red to +</span> and <span class="pad pg">black to −</span>. These need a lot of heat; let the iron recover between joints.</li>
+            <li>Solder the 1000 µF capacitor across the same pads. The stripe on the can marks the negative leg.</li>
+          </ul>
+          <div class="test"><b>Test:</b> multimeter on continuity across the XT60 pins. It must not beep steadily (a short chirp is the capacitor charging). Then plug a battery in through the smoke stopper: the ESC should beep a startup tune and the stopper should stay dark.</div>
+          <label class="check"><input type="checkbox" id="b4"> Power stage passes the test</label>
+        </div></li>
+        <li class="step"><div>
+          <h3>Fit the flight controller</h3>
+          <ul>
+            <li>Plug the ESC harness (the small 8-pin cable) between ESC and FC.</li>
+            <li>Mount the FC on the stack with its arrow pointing forward and the USB port reachable from the side.</li>
+            <li>Plug in USB now and flash the firmware (Part 2, step 1). It's easier before everything else is wired.</li>
+          </ul>
+          <label class="check"><input type="checkbox" id="b5"> FC mounted and seen by Betaflight</label>
+        </div></li>
+        <li class="step"><div>
+          <h3>Wire the receiver</h3>
+          <ul>
+            <li>Four wires: 5 V, GND, and the two signal wires <b>crossed</b>: receiver TX to FC RX2, receiver RX to FC TX2. See the <a href="#wiring">wiring map</a>.</li>
+            <li>Cover the receiver in heat shrink and stick it to the bottom plate at the rear.</li>
+            <li>Run the two antenna leads into protective tubes along the rear arms and zip-tie them, pointing away from carbon.</li>
+          </ul>
+          <label class="check"><input type="checkbox" id="b6"> Receiver wired</label>
+        </div></li>
+        <li class="step"><div>
+          <h3>Wire the camera and video transmitter</h3>
+          <ul>
+            <li>Camera: 5 V, GND, and its video wire to the FC's CAM pad.</li>
+            <li>VTX: power, GND, video in from the FC's VTX pad (the FC adds the on-screen display on the way through), and SmartAudio to FC TX4 so you can change channels from your radio.</li>
+            <li>Mount the camera between the side plates at 25° uptilt.</li>
+          </ul>
+          <div class="callout"><span class="t">Important</span><p>Screw the antenna onto the VTX <b>before</b> it ever gets power. A VTX transmitting with no antenna can burn out in seconds.</p></div>
+          <label class="check"><input type="checkbox" id="b7"> Camera and VTX wired, antenna on</label>
+        </div></li>
+        <li class="step"><div>
+          <h3>Wire the GPS</h3>
+          <ul>
+            <li>5 V, GND, GPS TX to FC RX3, GPS RX to FC TX3. If it has a compass, SDA to SDA and SCL to SCL.</li>
+            <li>Mount it on the rear of the top plate, ceramic patch facing the sky, as far from the VTX antenna and power wires as you can.</li>
+          </ul>
+          <label class="check"><input type="checkbox" id="b8"> GPS wired</label>
+        </div></li>
+        <li class="step"><div>
+          <h3>Close it up</h3>
+          <ul>
+            <li>Bolt the top plate on. Fit the VTX antenna mount on the rear standoff.</li>
+            <li>Stick the grip pad on and thread the strap through the slots.</li>
+            <li>Spin each motor by hand: it should turn freely with no wire or zip tie touching the bell.</li>
+          </ul>
+          <div class="test"><b>Test:</b> props off, power up through the smoke stopper again. You should see the FC LEDs, hear the ESC tune, and see camera video in your goggles.</div>
+          <label class="check"><input type="checkbox" id="b9"> Fully assembled and powered</label>
+        </div></li>
+      </ol>
+
+      <h3 id="wiring" style="scroll-margin-top:16px">Wiring map</h3>
+      <p>Pad names differ between flight controllers. Use your board's wiring diagram to find the matching pads, and note which UART numbers you used: you need them in Part 2.</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Part</th><th>Part's pad</th><th></th><th>FC pad</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="4">Receiver</td><td><span class="pad p5">5V</span></td><td class="arrow">→</td><td><span class="pad p5">5V</span></td><td>Power</td></tr>
+          <tr><td><span class="pad pg">GND</span></td><td class="arrow">→</td><td><span class="pad pg">GND</span></td><td>Ground</td></tr>
+          <tr><td><span class="pad ps">TX</span></td><td class="arrow">→</td><td><span class="pad ps">RX2</span></td><td>Stick commands into the FC</td></tr>
+          <tr><td><span class="pad ps">RX</span></td><td class="arrow">→</td><td><span class="pad ps">TX2</span></td><td>Telemetry back to your radio</td></tr>
+          <tr><td rowspan="4">GPS</td><td><span class="pad p5">5V</span></td><td class="arrow">→</td><td><span class="pad p5">5V</span></td><td>Power</td></tr>
+          <tr><td><span class="pad pg">GND</span></td><td class="arrow">→</td><td><span class="pad pg">GND</span></td><td>Ground</td></tr>
+          <tr><td><span class="pad ps">TX</span></td><td class="arrow">→</td><td><span class="pad ps">RX3</span></td><td>Position data</td></tr>
+          <tr><td><span class="pad ps">RX</span></td><td class="arrow">→</td><td><span class="pad ps">TX3</span></td><td>Configuration</td></tr>
+          <tr><td rowspan="3">Camera</td><td><span class="pad p5">5V</span></td><td class="arrow">→</td><td><span class="pad p5">5V</span></td><td>Power</td></tr>
+          <tr><td><span class="pad pg">GND</span></td><td class="arrow">→</td><td><span class="pad pg">GND</span></td><td>Ground</td></tr>
+          <tr><td><span class="pad pv">VIDEO</span></td><td class="arrow">→</td><td><span class="pad pv">CAM</span></td><td>Raw video into the OSD chip</td></tr>
+          <tr><td rowspan="4">VTX</td><td><span class="pad p5">VIN</span></td><td class="arrow">→</td><td><span class="pad p5">9V or VBAT</span></td><td>Check your VTX's input range</td></tr>
+          <tr><td><span class="pad pg">GND</span></td><td class="arrow">→</td><td><span class="pad pg">GND</span></td><td>Ground</td></tr>
+          <tr><td><span class="pad pv">VIDEO IN</span></td><td class="arrow">←</td><td><span class="pad pv">VTX</span></td><td>Video with OSD overlaid</td></tr>
+          <tr><td><span class="pad ps">SA</span></td><td class="arrow">←</td><td><span class="pad ps">TX4</span></td><td>SmartAudio channel and power control</td></tr>
+          <tr><td>ESC</td><td colspan="3">8-pin harness to FC</td><td>Motor signals, current sensor, battery voltage</td></tr>
+        </tbody>
+      </table></div>
+      <p class="files">The rule to remember: a <b>TX</b> pad always goes to an <b>RX</b> pad. One device talks (transmits) while the other listens (receives).</p>
+    </section>
+
+    <section class="part" id="setup">
+      <div class="parthead"><span class="pn">02</span><h2>Set it up in Betaflight</h2><span class="prog" data-prog="setup"></span></div>
+      <p>Betaflight is the open-source firmware that runs on the flight controller. You don't write it; you configure it. Connect the FC by USB and open Betaflight Configurator.</p>
+      <ol class="steps" data-part="setup">
+        <li class="step"><div>
+          <h3>Flash the firmware</h3>
+          <p>Firmware Flasher tab: choose your board, pick the latest stable release, click <b>Load firmware [Online]</b>, then <b>Flash firmware</b>. Reconnect when it finishes.</p>
+          <label class="check"><input type="checkbox" id="s1"> Firmware flashed</label>
+        </div></li>
+        <li class="step"><div>
+          <h3>Paste the starting setup</h3>
+          <p>Open the CLI tab, paste the block below and press Enter. It sets up the ports, receiver, motor protocol, GPS, battery alarms and switches in one go. Check the UART numbers first if you wired different pads.</p>
+          <div class="codeblock"><div class="bar"><span>betaflight/kestrel5-cli.txt</span><button class="copy" data-copy="cli">Copy</button></div><pre id="cli"><span class="c"># ports: 64 = receiver, 2 = GPS, 2048 = VTX SmartAudio, 1 = USB MSP</span>
+serial 20 1 115200 57600 0 115200
+serial 1 64 115200 57600 0 115200
+serial 2 2 115200 57600 0 115200
+serial 3 2048 115200 57600 0 115200
+<span class="c"># receiver: ExpressLRS speaks CRSF</span>
+feature RX_SERIAL
+feature TELEMETRY
+set serialrx_provider = CRSF
+<span class="c"># motors: DShot600 with RPM telemetry; 2207 motors have 14 poles</span>
+set motor_pwm_protocol = DSHOT600
+set dshot_bidir = ON
+set motor_poles = 14
+<span class="c"># GPS and on-screen display</span>
+feature GPS
+feature OSD
+set gps_provider = UBLOX
+<span class="c"># battery: warn at 3.5 V per cell, empty at 3.3 V per cell</span>
+set vbat_warning_cell_voltage = 350
+set vbat_min_cell_voltage = 330
+<span class="c"># lost radio link: fly home on GPS</span>
+set failsafe_procedure = GPS-RESCUE
+<span class="c"># switches: AUX1 arm, AUX2 angle/horizon/acro, AUX3 beeper, AUX4 turtle, AUX5 GPS rescue</span>
+aux 0 0 0 1700 2100 0 0
+aux 1 1 1 900 1300 0 0
+aux 2 2 1 1300 1700 0 0
+aux 3 13 2 1700 2100 0 0
+aux 4 35 3 1700 2100 0 0
+aux 5 46 4 1700 2100 0 0
+set craft_name = KESTREL5
+save</pre></div>
+          <label class="check"><input type="checkbox" id="s2"> Setup pasted and saved</label>
+        </div></li>
+        <li class="step"><div>
+          <h3>Calibrate and check orientation</h3>
+          <p>Setup tab: put the quad on a level surface and click <b>Calibrate Accelerometer</b>. Tilt the real quad: the 3D model on screen must tilt the same way. If it doesn't, the FC is mounted rotated; fix it under Configuration › Board alignment.</p>
+          <label class="check"><input type="checkbox" id="s3"> Accelerometer calibrated, model moves correctly</label>
+        </div></li>
+        <li class="step"><div>
+          <h3>Bind the receiver</h3>
+          <p>Set the same <b>binding phrase</b> on your radio's ExpressLRS module and on the receiver (flash it with ExpressLRS Configurator, or use the receiver's Wi-Fi page). Then in the Receiver tab, move each stick: the matching bar should move. Roll, pitch, yaw and throttle must each move the right bar, centred at 1500.</p>
+          <label class="check"><input type="checkbox" id="s4"> Receiver bound, sticks move the right bars</label>
+        </div></li>
+        <li class="step"><div>
+          <h3>Check motor order and direction</h3>
+          <div class="callout"><span class="t">Props off</span><p>Remove all four props before this step. Plug in a battery.</p></div>
+          <p>Motors tab: tick the safety switch and raise each motor's slider a little. Each must be in the right place and spin the right way, looking down from above:</p>
+          <div class="tablewrap"><table>
+            <thead><tr><th>Motor</th><th>Position</th><th>Spin</th></tr></thead>
+            <tbody>
+              <tr><td class="num">M1</td><td>Rear right</td><td>Clockwise</td></tr>
+              <tr><td class="num">M2</td><td>Front right</td><td>Counter-clockwise</td></tr>
+              <tr><td class="num">M3</td><td>Rear left</td><td>Counter-clockwise</td></tr>
+              <tr><td class="num">M4</td><td>Front left</td><td>Clockwise</td></tr>
+            </tbody>
+          </table></div>
+          <p>Wrong place: use <b>Reorder motors</b> in the Motors tab. Wrong direction: use <b>Motor direction</b> in the Motors tab, or reverse it in ESC Configurator. You don't need to re-solder either way.</p>
+          <label class="check"><input type="checkbox" id="s5"> All four motors in place and spinning correctly</label>
+        </div></li>
+        <li class="step"><div>
+          <h3>Modes, OSD, VTX and failsafe</h3>
+          <ul>
+            <li><b>Modes:</b> flick each switch and check the right mode lights up.</li>
+            <li><b>OSD:</b> drag on battery voltage, flight timer, GPS satellites and home arrow.</li>
+            <li><b>Video Transmitter:</b> load your VTX's table from its maker, choose a channel and start at 25 mW on the bench.</li>
+            <li><b>Failsafe:</b> set GPS Rescue return altitude to about 30 m and minimum satellites to 8.</li>
+          </ul>
+          <div class="test"><b>Test:</b> props off, arm on the bench, then switch your radio off. The motors must react within a second (failsafe). Never skip this.</div>
+          <label class="check"><input type="checkbox" id="s6"> Modes, OSD, VTX and failsafe tested</label>
+        </div></li>
+      </ol>
+    </section>
+
+    <section class="part" id="code">
+      <div class="parthead"><span class="pn">03</span><h2>Code it</h2></div>
+      <p>There are three ways to "code" a drone, from understanding what the firmware does to making it fly itself. All three are in the project's <code>drone-model/code/</code> folder and run on a normal computer.</p>
+
+      <span class="level">Level 1 · How flight code works</span>
+      <h3>The control loop</h3>
+      <p>A quadcopter can't fly without a computer. It is unstable: left alone it flips in a fraction of a second. The flight controller runs this loop 4,000 to 8,000 times a second:</p>
+      <div class="loop" role="list">
+        <div class="node" role="listitem"><b>Gyro</b><span>Measures how fast the quad is rotating on each axis</span></div><span class="sep" aria-hidden="true">→</span>
+        <div class="node" role="listitem"><b>Filter</b><span>Removes motor vibration noise</span></div><span class="sep" aria-hidden="true">→</span>
+        <div class="node hot" role="listitem"><b>PID</b><span>Compares actual rotation to what your sticks ask for</span></div><span class="sep" aria-hidden="true">→</span>
+        <div class="node hot" role="listitem"><b>Mixer</b><span>Turns roll, pitch, yaw into four motor speeds</span></div><span class="sep" aria-hidden="true">→</span>
+        <div class="node" role="listitem"><b>Motors</b><span>DShot commands to the ESC</span></div>
+      </div>
+      <p class="loopnote">↻ the quad rotates, the gyro sees it, and the loop runs again 250 µs later</p>
+
+      <p><b>The PID controller</b> turns the error (asked-for rotation minus actual rotation) into a correction. P pushes in proportion to the error. I adds up error over time to cancel steady pushes, like a battery that's slightly off-centre. D reacts to how fast the rotation is changing and damps overshoot. This is the core of it, taken from <code>pid_sim.py</code>:</p>
+      <div class="codeblock"><div class="bar"><span>code/pid_sim.py · the PID step</span><button class="copy" data-copy="pid">Copy</button></div><pre id="pid">error = setpoint - gyro                         <span class="c"># deg/s: what you asked for minus what's happening</span>
+pterm = p * PTERM_SCALE * error                 <span class="c"># push in proportion to the error</span>
+iterm += i * ITERM_SCALE * error * relax * dt   <span class="c"># remember error over time</span>
+dterm = d * DTERM_SCALE * -(gyro - prev_gyro) / dt   <span class="c"># brake when rotation changes fast</span>
+u = (pterm + iterm + dterm) / 1000              <span class="c"># -1..1 share of the motors' authority</span></pre></div>
+
+      <p><b>The mixer</b> decides which motors speed up. To roll right, the left motors speed up and the right ones slow down. To yaw, the two motors spinning one way speed up and the other two slow down; the frame twists the opposite way from the props. This is Betaflight's quad-X table:</p>
+      <div class="codeblock"><div class="bar"><span>quad-X mixer</span><button class="copy" data-copy="mix">Copy</button></div><pre id="mix"><span class="c">#                 roll  pitch  yaw     (Betaflight quad-X)</span>
+MIX = {
+    'M1 rear-right':  (-1,   +1,   -1),
+    'M2 front-right': (-1,   -1,   +1),
+    'M3 rear-left':   (+1,   +1,   +1),
+    'M4 front-left':  (+1,   -1,   -1),
+}
+
+def mix(throttle, roll, pitch, yaw):
+    return {m: throttle + r * roll + p * pitch + y * yaw
+            for m, (r, p, y) in MIX.items()}</pre></div>
+
+      <h3>Try it: tune a PID yourself</h3>
+      <p><code>pid_sim.py</code> simulates the Kestrel 5's roll axis with real physics (inertia, motor lag, gyro noise, an off-centre battery) and Betaflight's own gain scaling. The P, I and D numbers mean the same as the sliders in Betaflight's PID tab.</p>
+      <div class="codeblock"><div class="bar"><span>terminal</span><button class="copy" data-copy="run1">Copy</button></div><pre id="run1">cd drone-model/code
+python3 pid_sim.py                  <span class="c"># Betaflight defaults: P 45, I 80, D 40</span>
+python3 pid_sim.py --i 0            <span class="c"># remove I and watch it drift</span>
+python3 pid_sim.py --p 110 --d 15   <span class="c"># too much P, too little D</span>
+python3 pid_sim.py --plot           <span class="c"># chart, needs matplotlib</span></pre></div>
+      <p>Each run asks for a sudden 400 °/s roll and prints a chart and these numbers. What you'll see:</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Tune</th><th>Rise</th><th>Overshoot</th><th>Settles</th><th>Steady error</th><th>What it teaches</th></tr></thead>
+        <tbody>
+          <tr><td class="num">P45 I80 D40</td><td class="num">68 ms</td><td class="num">2%</td><td class="num">79 ms</td><td class="num">0 °/s</td><td>The defaults: fast, crisp, no bounce</td></tr>
+          <tr><td class="num">I = 0</td><td class="num">75 ms</td><td class="num">0%</td><td class="num">never</td><td class="num">28 °/s</td><td>Without I, the off-centre battery wins and it drifts</td></tr>
+          <tr><td class="num">D = 0</td><td class="num">43 ms</td><td class="num">6%</td><td class="num">157 ms</td><td class="num">2 °/s</td><td>Faster, but nothing brakes it, so it rings</td></tr>
+          <tr><td class="num">P = 20</td><td class="num">95 ms</td><td class="num">23%</td><td class="num">never</td><td class="num">18 °/s</td><td>Too soft: I takes over and it wobbles</td></tr>
+          <tr><td class="num">P110 D15</td><td class="num">26 ms</td><td class="num">17%</td><td class="num">101 ms</td><td class="num">6 °/s</td><td>Very sharp, but overshoots: hot motors, bounce-back</td></tr>
+        </tbody>
+      </table></div>
+      <p>On the real quad, use Betaflight's simplified tuning sliders and Blackbox logs rather than guessing. The simulator is there so the sliders make sense.</p>
+
+      <span class="level">Level 2 · Talk to your flight controller</span>
+      <h3>Read live data with MSP</h3>
+      <p>Betaflight speaks <b>MSP</b> (MultiWii Serial Protocol) over USB, the same protocol the Configurator uses. <code>msp_monitor.py</code> sends small request frames and decodes the replies: attitude, battery voltage, current and stick positions, live in your terminal. It only reads, so it can't arm or spin anything.</p>
+      <div class="codeblock"><div class="bar"><span>code/msp_monitor.py · building a request</span><button class="copy" data-copy="msp">Copy</button></div><pre id="msp">def encode(cmd, payload=b''):
+    size = len(payload)
+    ck = size ^ cmd                 <span class="c"># checksum = XOR of size, command and payload</span>
+    for b in payload:
+        ck ^= b
+    return b'$M&lt;' + bytes([size, cmd]) + payload + bytes([ck])
+
+<span class="c"># MSP_ATTITUDE (108) replies with roll and pitch in 0.1° and yaw in degrees</span>
+roll, pitch, yaw = struct.unpack('&lt;hhh', payload[:6])</pre></div>
+      <div class="codeblock"><div class="bar"><span>terminal</span><button class="copy" data-copy="run2">Copy</button></div><pre id="run2">pip install pyserial
+python3 msp_monitor.py --selftest            <span class="c"># checks the protocol code, no hardware</span>
+python3 msp_monitor.py --port /dev/ttyACM0   <span class="c"># Linux; COM5 on Windows, /dev/cu.usbmodem… on macOS</span></pre></div>
+      <p>Close Betaflight Configurator first (only one program can use the port). Tilt the quad by hand and watch roll and pitch change. From here you can log flights, build your own ground station, or show telemetry on a screen.</p>
+
+      <span class="level">Level 3 · Make it fly itself</span>
+      <h3>Autonomous missions in a simulator</h3>
+      <p>Betaflight is built for a human pilot. For autonomy (take off, fly a route, land on its own) you use an autopilot firmware such as <b>ArduPilot</b> or <b>INAV</b> and send it commands over <b>MAVLink</b>. <code>sitl_mission.py</code> does this against ArduPilot's software-in-the-loop simulator: it arms, climbs to 10 m, flies a 20 m square and lands.</p>
+      <div class="codeblock"><div class="bar"><span>code/sitl_mission.py · the mission</span><button class="copy" data-copy="sitl">Copy</button></div><pre id="sitl">d = Drone('udp:127.0.0.1:14550')
+d.mode('GUIDED')       <span class="c"># accept commands from this script</span>
+d.arm()                <span class="c"># waits for GPS lock and pre-arm checks</span>
+d.takeoff(10)          <span class="c"># metres</span>
+for north, east in [(20, 0), (20, 20), (0, 20), (0, 0)]:
+    d.goto(north, east, 10)
+d.mode('LAND')</pre></div>
+      <div class="codeblock"><div class="bar"><span>terminal</span><button class="copy" data-copy="run3">Copy</button></div><pre id="run3"><span class="c"># one-time: install ArduPilot SITL (see ardupilot.org › Building the code)</span>
+sim_vehicle.py -v ArduCopter --console --map   <span class="c"># starts a virtual quad</span>
+pip install pymavlink
+python3 sitl_mission.py</pre></div>
+      <div class="callout"><span class="t">Real hardware</span><p>Prove every mission in simulation first. To fly missions on the real Kestrel 5, flash <b>INAV</b> instead of Betaflight (it supports F7 boards with GPS and plans waypoint missions in its configurator), or swap to an H743 flight controller that ArduPilot supports. Autonomous flight must stay within your country's line-of-sight rules.</p></div>
+    </section>
+
+    <section class="part" id="fly">
+      <div class="parthead"><span class="pn">04</span><h2>First flight</h2><span class="prog" data-prog="fly"></span></div>
+      <ol class="steps" data-part="fly">
+        <li class="step"><div>
+          <h3>Learn in a simulator first</h3>
+          <p>Spend 10+ hours in a simulator with the same radio. Crashing there is free; crashing here costs props, arms and sometimes motors.</p>
+          <label class="check"><input type="checkbox" id="f1"> Comfortable hovering and flying circles in a sim</label>
+        </div></li>
+        <li class="step"><div>
+          <h3>Fit the props the right way round</h3>
+          <p>Orange props go on the front motors, smoke props on the rear. Each prop's raised leading edge must face the direction its motor spins. Wrong props make the quad flip the instant it lifts off. Tighten the M5 nuts firmly.</p>
+          <label class="check"><input type="checkbox" id="f2"> Props on, directions checked</label>
+        </div></li>
+        <li class="step"><div>
+          <h3>Pre-flight check</h3>
+          <ul>
+            <li>Big open field, nobody nearby, legal to fly, spotter beside you.</li>
+            <li>Battery fully charged (25.2 V) and strapped tight.</li>
+            <li>Goggles on the same channel as the VTX; GPS showing 8+ satellites before arming (home point gets saved).</li>
+            <li>Failsafe tested on the bench (Part 2, step 6).</li>
+          </ul>
+          <label class="check"><input type="checkbox" id="f3"> Pre-flight check done</label>
+        </div></li>
+        <li class="step"><div>
+          <h3>Hover in Angle mode</h3>
+          <p>Switch to Angle mode (AUX2 low), arm, and raise throttle slowly until it lifts. It should hover at around 22–25% throttle and hold level. Keep it low and close. Land when the OSD shows 3.5 V per cell.</p>
+          <div class="test"><b>After landing:</b> touch the motors. Warm is fine. Too hot to hold means noise or a bad tune: check props and screws, then look at a Blackbox log before flying again.</div>
+          <label class="check"><input type="checkbox" id="f4"> First hover done</label>
+        </div></li>
+        <li class="step"><div>
+          <h3>Progress to Acro</h3>
+          <p>Practise Horizon, then Acro (AUX2 high), where the quad holds whatever angle you leave it at. Acro is how FPV freestyle and racing are flown.</p>
+          <label class="check"><input type="checkbox" id="f5"> Flying in Acro</label>
+        </div></li>
+      </ol>
+    </section>
+
+    <section class="part" id="fix">
+      <div class="parthead"><span class="pn">05</span><h2>Troubleshooting</h2></div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Problem</th><th>Likely cause</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr><td>Flips over the moment it lifts</td><td>Props on the wrong motors, wrong motor order or direction</td><td>Recheck Part 2 step 5 and the prop step above</td></tr>
+          <tr><td>Won't arm</td><td>Arming flags: no receiver, throttle not low, tilted, USB connected</td><td>The Setup tab or OSD shows which flag blocks arming</td></tr>
+          <tr><td>No sticks in the Receiver tab</td><td>TX/RX not crossed, wrong UART, not bound</td><td>Swap the two signal wires; check <code>serial 1 64</code> matches your pads</td></tr>
+          <tr><td>Video but no OSD</td><td>Video going camera → VTX directly</td><td>Route through the FC's CAM and VTX pads</td></tr>
+          <tr><td>Can't change VTX channel from radio</td><td>SmartAudio wire or UART</td><td>Check <code>serial 3 2048</code>, load the VTX table</td></tr>
+          <tr><td>GPS shows 0 satellites</td><td>Indoors, TX/RX not crossed, wrong baud</td><td>Test outside for 5 minutes; swap TX/RX</td></tr>
+          <tr><td>Hot motors, wobbles at the end of flips</td><td>Bent prop, loose screw or tune</td><td>Replace props, check screws, then tune with Blackbox</td></tr>
+          <tr><td>Video goes noisy when throttling up</td><td>Electrical noise</td><td>Make sure the capacitor is fitted; power the camera from the FC's 5 V</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <footer>Companion to the Kestrel 5 3D model. Files referenced here live in the project's <code>drone-model/</code> folder: <code>betaflight/kestrel5-cli.txt</code>, <code>code/pid_sim.py</code>, <code>code/msp_monitor.py</code> and <code>code/sitl_mission.py</code>.</footer>
+  </main>
+</div>
+
+<script>
+(function () {
+  var KEY = 'kestrel5-guide-progress';
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { saved = {}; }
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('.check input'));
+
+  function update() {
+    document.querySelectorAll('ol.steps').forEach(function (ol) {
+      var items = ol.querySelectorAll(':scope > li');
+      var done = 0;
+      items.forEach(function (li) {
+        var cb = li.querySelector('.check input');
+        var on = cb && cb.checked;
+        li.classList.toggle('done', !!on);
+        if (on) done++;
+      });
+      var label = done + ' of ' + items.length;
+      document.querySelectorAll('[data-prog="' + ol.dataset.part + '"]').forEach(function (el) { el.textContent = label; });
+    });
+  }
+  boxes.forEach(function (cb) {
+    cb.checked = !!saved[cb.id];
+    cb.addEventListener('change', function () {
+      saved[cb.id] = cb.checked;
+      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+      update();
+    });
+  });
+  update();
+
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var pre = document.getElementById(btn.dataset.copy);
+      var text = pre.innerText;
+      var done = function () { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); };
+      var fallback = function () {
+        var r = document.createRange(); r.selectNodeContents(pre);
+        var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+        btn.textContent = 'Selected, press Ctrl+C';
+        setTimeout(function () { btn.textContent = 'Copy'; }, 2500);
+      };
+      try {
+        navigator.clipboard.writeText(text).then(done, fallback);
+      } catch (e) { fallback(); }
+    });
+  });
+})();
+</script>

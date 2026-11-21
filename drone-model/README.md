@@ -15,6 +15,11 @@ A procedural 3D model (three.js) of a 5-inch, 6S FPV quadcopter with every compo
 | `out/components/*.glb` | Each component on its own, kept in drone coordinates so they reassemble. |
 | `out/bom.csv` | Bill of materials with specs and masses. |
 | `export.cjs` | Regenerates everything in `out/` (`npm install && npm run export`). |
+| `guide.html` | Build guide: soldering, wiring map, Betaflight setup, coding, first flight. |
+| `betaflight/kestrel5-cli.txt` | Paste into the Betaflight CLI for the starting setup. |
+| `code/pid_sim.py` | Roll-axis PID simulator with Betaflight gain scaling (`python3 pid_sim.py --help`). |
+| `code/msp_monitor.py` | Reads live attitude, battery and sticks from the FC over USB (MSP). |
+| `code/sitl_mission.py` | Autonomous square mission for ArduPilot SITL via pymavlink. |
 
 Units are millimetres in the source and metres in the GLB files. Front is +Z, up is +Y. Every mesh carries `extras.comp` with its component id.
 

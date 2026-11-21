@@ -1,0 +1,53 @@
+# Kestrel 5 - Betaflight 4.4 / 4.5 starting setup
+#
+# How to use: Betaflight Configurator > CLI tab > paste everything > Enter.
+# The board reboots after "save".
+#
+# BEFORE PASTING, check the UART numbers against the pads you soldered:
+#   serial 1 = UART2 (receiver), serial 2 = UART3 (GPS), serial 3 = UART4 (VTX SmartAudio)
+#   serial 20 = USB. Change the first number if you wired different UARTs.
+# PROPS OFF until the Motors tab check is done.
+
+# --- ports: function mask 64 = Serial RX, 2 = GPS, 2048 = VTX SmartAudio, 1 = MSP
+serial 20 1 115200 57600 0 115200
+serial 1 64 115200 57600 0 115200
+serial 2 2 115200 57600 0 115200
+serial 3 2048 115200 57600 0 115200
+
+# --- receiver: ExpressLRS speaks CRSF
+feature RX_SERIAL
+feature TELEMETRY
+set serialrx_provider = CRSF
+
+# --- motors: DShot600 with RPM telemetry for the RPM filter (2207 = 14 magnet poles)
+set motor_pwm_protocol = DSHOT600
+set dshot_bidir = ON
+set motor_poles = 14
+
+# --- GPS and OSD
+feature GPS
+feature OSD
+set gps_provider = UBLOX
+
+# --- battery: warn at 3.5 V per cell, empty at 3.3 V per cell
+set vbat_warning_cell_voltage = 350
+set vbat_min_cell_voltage = 330
+
+# --- if the radio link is lost: fly home on GPS (falls back to landing without a fix)
+set failsafe_procedure = GPS-RESCUE
+
+# --- switches (aux <slot> <mode> <channel> <from> <to> 0 0), channel 0 = AUX1
+# AUX1 high = ARM
+aux 0 0 0 1700 2100 0 0
+# AUX2 low = ANGLE (self-levelling), mid = HORIZON, high = ACRO (no mode)
+aux 1 1 1 900 1300 0 0
+aux 2 2 1 1300 1700 0 0
+# AUX3 high = BEEPER (find it in the grass)
+aux 3 13 2 1700 2100 0 0
+# AUX4 high = TURTLE (flip back over after a crash)
+aux 4 35 3 1700 2100 0 0
+# AUX5 high = GPS RESCUE (manual return-home)
+aux 5 46 4 1700 2100 0 0
+
+set craft_name = KESTREL5
+save
