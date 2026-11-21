@@ -1,0 +1,11 @@
+{
+  "name": "kestrel-5-drone-model",
+  "private": true,
+  "description": "Procedural 3D model of a 5-inch FPV quadcopter with every component, plus GLB export.",
+  "scripts": {
+    "export": "node export.cjs"
+  },
+  "dependencies": {
+    "three": "0.180.0"
+  }
+}

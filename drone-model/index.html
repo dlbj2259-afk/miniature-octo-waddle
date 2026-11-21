@@ -1,0 +1,938 @@
+<title>Kestrel 5 Quadcopter</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky 3D bench on the left, build sheet + parts list on the right; stacks on phones. */
+:root {
+  --bg: #edf0f3;
+  --surface: #ffffff;
+  --ink: #151a20;
+  --muted: #5a6573;
+  --line: #d5dbe2;
+  --chip: #f2f4f7;
+  --accent: #d9501a;
+  --accent-ink: #ffffff;
+  --view-a: #e6eaef;
+  --view-b: #d2d9e1;
+  --grid: #b8c2cd;
+  --grid-strong: #8e9bab;
+  --shadow: 0.2;
+  --f-display: 'Archivo', 'Inter', system-ui, sans-serif;
+  --f-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1216; --surface: #151a20; --ink: #e6ebf0; --muted: #8d99a7; --line: #252d36; --chip: #1b2128;
+    --accent: #ff7a3a; --accent-ink: #1b0d05; --view-a: #161c23; --view-b: #0a0e12; --grid: #26303b; --grid-strong: #3b4858;
+    --shadow: 0.42; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1216; --surface: #151a20; --ink: #e6ebf0; --muted: #8d99a7; --line: #252d36; --chip: #1b2128;
+  --accent: #ff7a3a; --accent-ink: #1b0d05; --view-a: #161c23; --view-b: #0a0e12; --grid: #26303b; --grid-strong: #3b4858;
+  --shadow: 0.42; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--bg); color: var(--ink); }
+body { font-family: var(--f-body); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+.app {
+  display: grid; gap: 20px;
+  grid-template-columns: minmax(0, 1.6fr) minmax(340px, 1fr);
+  grid-template-areas: "view head" "view side";
+  grid-template-rows: auto 1fr;
+  padding-block: 20px 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  max-width: 1680px; margin: 0 auto;
+}
+.head { grid-area: head; min-width: 0; display: grid; gap: 8px; padding-top: 4px; }
+.side { grid-area: side; min-width: 0; display: grid; gap: 20px; align-content: start; }
+.view {
+  grid-area: view; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 20px); align-self: start;
+  height: min(calc(100vh - 40px), 920px); min-height: 420px;
+  border-radius: 14px; overflow: hidden; border: 1px solid var(--line);
+  background: radial-gradient(120% 90% at 50% 35%, var(--view-a) 0%, var(--view-b) 100%);
+}
+@media (max-width: 900px) {
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "view" "side"; grid-template-rows: auto; }
+  .view { position: relative; top: 0; height: 64vh; min-height: 380px; max-height: 620px; }
+}
+
+.eyebrow { font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.eyebrow b { color: var(--accent); font-weight: 500; }
+h1 {
+  margin: 0; font-family: var(--f-display); font-stretch: 125%; font-weight: 800; font-size: clamp(34px, 4.2vw, 52px);
+  line-height: .95; letter-spacing: -.02em; text-wrap: balance;
+}
+.lede { margin: 2px 0 0; color: var(--muted); max-width: 60ch; }
+
+#c { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+#c:active { cursor: grabbing; }
+.ov { position: absolute; pointer-events: none; }
+.ov > * { pointer-events: auto; }
+.tools { top: 12px; left: 12px; right: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; pointer-events: none; }
+.seg { display: inline-flex; padding: 3px; border-radius: 9px; background: color-mix(in srgb, var(--surface) 82%, transparent); border: 1px solid var(--line); backdrop-filter: blur(8px); }
+.seg button, .btn {
+  font: 500 12.5px/1 var(--f-body); color: var(--ink); background: transparent; border: 0; padding: 8px 11px; border-radius: 6px; cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.btn { background: color-mix(in srgb, var(--surface) 82%, transparent); border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; backdrop-filter: blur(8px); }
+.btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.seg button:hover:not([aria-pressed="true"]), .btn:hover { background: var(--chip); }
+
+.card {
+  left: 12px; bottom: 12px; max-width: min(360px, calc(100% - 24px));
+  background: color-mix(in srgb, var(--surface) 90%, transparent); border: 1px solid var(--line); border-radius: 11px;
+  padding: 12px 14px; backdrop-filter: blur(10px);
+}
+.card .k { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.card .n { font-family: var(--f-display); font-stretch: 112%; font-weight: 700; font-size: 17px; line-height: 1.2; margin-top: 2px; }
+.card .d { color: var(--muted); font-size: 12.5px; margin-top: 4px; }
+.card .hint { color: var(--muted); font-size: 12.5px; }
+.legend { right: 12px; bottom: 12px; font-family: var(--f-mono); font-size: 10.5px; color: var(--muted); text-align: right; letter-spacing: .04em; line-height: 1.6; }
+.legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ff6a1f; margin-right: 5px; vertical-align: 0; }
+@media (max-width: 560px) { .legend { display: none; } }
+.tip {
+  position: absolute; pointer-events: none; padding: 5px 8px; border-radius: 6px; background: var(--ink); color: var(--bg);
+  font: 500 12px/1.2 var(--f-body); white-space: nowrap; transform: translate(12px, -130%);
+}
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; min-width: 0; }
+.panel h2 { margin: 0 0 12px; font-family: var(--f-display); font-stretch: 115%; font-weight: 700; font-size: 15px; letter-spacing: .01em; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.panel h2 small { font: 400 12px var(--f-mono); color: var(--muted); letter-spacing: 0; }
+
+.batt { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+.batt label { font-size: 12.5px; color: var(--muted); }
+.batt .seg { background: var(--chip); backdrop-filter: none; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+@media (max-width: 460px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.stat { background: var(--surface); padding: 10px 12px; min-width: 0; }
+.stat .l { font-size: 11.5px; color: var(--muted); }
+.stat .v { font-family: var(--f-mono); font-weight: 500; font-size: 19px; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.stat .v small { font-size: 12px; color: var(--muted); margin-left: 2px; }
+.stat .s { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.note { margin: 10px 0 0; font-size: 11.5px; color: var(--muted); max-width: 70ch; }
+
+.group + .group { margin-top: 14px; }
+.ghead { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; padding: 0 2px 6px; border-bottom: 1px solid var(--line); }
+.ghead span:first-child { font-family: var(--f-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.ghead span:last-child { font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.parts { list-style: none; margin: 0; padding: 0; }
+.parts li { border-bottom: 1px solid var(--line); }
+.part {
+  width: 100%; display: grid; grid-template-columns: 12px minmax(0, 1fr) auto auto; gap: 10px; align-items: center;
+  padding: 9px 4px; background: none; border: 0; color: inherit; text-align: left; font: inherit; cursor: pointer; border-radius: 6px;
+}
+.part:hover { background: var(--chip); }
+.part[aria-expanded="true"] .pn { color: var(--accent); }
+.sw { width: 12px; height: 12px; border-radius: 3px; background: var(--sw); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 18%, transparent); }
+.pn { font-weight: 500; min-width: 0; }
+.pn small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+.pq, .pm { font-family: var(--f-mono); font-size: 12.5px; font-variant-numeric: tabular-nums; color: var(--muted); }
+.pm { color: var(--ink); min-width: 62px; text-align: right; }
+.pd { padding: 2px 4px 12px 26px; }
+.pd p { margin: 0 0 8px; color: var(--muted); font-size: 13px; max-width: 62ch; }
+.pd dl { margin: 0; display: grid; grid-template-columns: minmax(96px, auto) minmax(0, 1fr); gap: 3px 12px; font-size: 12.5px; }
+.pd dt { color: var(--muted); }
+.pd dd { margin: 0; font-family: var(--f-mono); font-size: 12px; }
+.foot { font-size: 11.5px; color: var(--muted); padding: 0 2px; }
+.err { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="app">
+  <header class="head">
+    <div class="eyebrow"><b>Project model</b> · Quad-X · 5-inch · 6S</div>
+    <h1>Kestrel 5</h1>
+    <p class="lede">A 5-inch FPV quadcopter with all 15 components modeled to real dimensions. Drag to orbit, click any part to inspect it, or explode the stack to see how it goes together.</p>
+  </header>
+
+  <section class="view" id="view" aria-label="3D model of the Kestrel 5 quadcopter">
+    <canvas id="c"></canvas>
+    <div class="ov tools">
+      <div class="seg" role="group" aria-label="View mode">
+        <button id="bAsm" aria-pressed="true">Assembled</button>
+        <button id="bExp" aria-pressed="false">Exploded</button>
+      </div>
+      <button class="btn" id="bSpin" aria-pressed="true">Spin props</button>
+      <button class="btn" id="bReset">Reset view</button>
+    </div>
+    <div class="ov card" id="card" aria-live="polite">
+      <div class="hint">Click any part to inspect it. Drag to orbit, scroll or pinch to zoom.</div>
+    </div>
+    <div class="ov legend"><i></i>orange props mark the front<br>grid square = 25 mm</div>
+    <div class="tip" id="tip" hidden></div>
+  </section>
+
+  <aside class="side">
+    <section class="panel" aria-labelledby="hSheet">
+      <h2 id="hSheet">Build sheet <small id="auwSmall"></small></h2>
+      <div class="batt">
+        <label id="lBatt">Battery</label>
+        <div class="seg" role="group" aria-labelledby="lBatt" id="battSeg"></div>
+      </div>
+      <div class="stats" id="stats"></div>
+      <p class="note">Estimates. Thrust uses typical bench data for a 2207 1950 KV motor on 6S with 5.1 × 4.3 × 3 props (≈1.45 kg each). Hover assumes 4.2 g/W and 80% usable capacity; freestyle draws about 3.4× hover current.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="hParts">
+      <h2 id="hParts">Components <small id="partCount"></small></h2>
+      <div id="groups"></div>
+    </section>
+    <div class="foot">Units are millimetres. Front is +Z, up is +Y. Motor numbering and spin follow the Betaflight Quad-X default.</div>
+  </aside>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+/* ------------------------------------------------------------------ data */
+const BATTERIES = [
+  { mah: 1100, mass: 185, L: 74, W: 35, H: 38, c: 120 },
+  { mah: 1300, mass: 212, L: 76, W: 35, H: 40, c: 120 },
+  { mah: 1500, mass: 240, L: 78, W: 36, H: 42, c: 100 },
+];
+let batt = BATTERIES[0];
+
+const GROUPS = ['Airframe', 'Propulsion', 'Flight electronics', 'Video & radio', 'Power'];
+const COMPONENTS = [
+  { id: 'frame', group: 'Airframe', name: 'Carbon fiber frame', sub: '225 mm true-X', qty: 1, mass: 112, sw: '#2a2e34',
+    role: 'The structure everything bolts to. A unibody 5 mm bottom plate takes crash loads; the 2 mm top plate closes the box and carries the battery.',
+    specs: [['Wheelbase', '225 mm motor to motor'], ['Arms', '5 mm T700 carbon, 16 × 16 mm motor mount'], ['Top plate', '2 mm carbon, strap slots'], ['Stack mounts', '30.5 × 30.5 mm, M3'], ['Standoffs', '4 × 30 mm aluminium, M3'], ['Camera mount', '19 mm side plates, 0–50° tilt']] },
+  { id: 'hardware', group: 'Airframe', name: 'Wiring & hardware', sub: 'Bolts, motor leads', qty: 1, mass: 14, sw: '#8d8a84',
+    role: 'Titanium bolts hold the frame and stack together; silicone motor leads run along the arms to the ESC.',
+    specs: [['Stack bolts', '4 × M3 × 40 mm titanium'], ['Motor bolts', '16 × M3 × 8 mm'], ['Motor leads', '3 × 18 AWG silicone per motor'], ['Frame bolts', 'M3 button head, top and bottom']] },
+  { id: 'strap', group: 'Airframe', name: 'Battery strap & grip pad', sub: '20 × 250 mm', qty: 1, mass: 6, sw: '#3a3d42',
+    role: 'Holds the battery down through crashes. The silicone pad stops it sliding forward under hard braking.',
+    specs: [['Strap', '20 × 250 mm, Kevlar-reinforced'], ['Buckle', 'Aluminium, quick release'], ['Pad', '1 mm silicone grip pad']] },
+
+  { id: 'motor', group: 'Propulsion', name: 'Brushless motor', sub: '2207 · 1950 KV', qty: 4, mass: 32.5, sw: '#4a4f57',
+    role: 'Each motor spins one propeller. 2207 means a 22 mm wide, 7 mm tall stator; 1950 KV suits 6S and 5-inch props.',
+    specs: [['Stator', '22 × 7 mm, 12N14P'], ['KV', '1950 rpm per volt'], ['Shaft', 'M5, 5 mm titanium'], ['Mount', '16 × 16 mm, M3'], ['Peak thrust', '≈1.45 kg on 6S'], ['Layout', 'M1 rear-right CW · M2 front-right CCW · M3 rear-left CCW · M4 front-left CW']] },
+  { id: 'prop', group: 'Propulsion', name: 'Propeller', sub: '5.1 × 4.3 × 3', qty: 4, mass: 4.2, sw: '#ff6a1f',
+    role: 'Tri-blade polycarbonate props: 130 mm diameter, 4.3 inch pitch. Two spin clockwise and two counter-clockwise so the torque cancels.',
+    specs: [['Diameter', '5.1 in (130 mm)'], ['Pitch', '4.3 in (109 mm per turn)'], ['Blades', '3, polycarbonate'], ['Hub', 'M5, locked with nylock nut'], ['Colours', 'Orange front, smoke rear for orientation']] },
+  { id: 'esc', group: 'Propulsion', name: '4-in-1 ESC', sub: '55 A · 3–6S', qty: 1, mass: 15, sw: '#121417',
+    role: 'The electronic speed controller turns battery DC into three-phase drive for all four motors on one board at the bottom of the stack.',
+    specs: [['Current', '55 A continuous per motor'], ['Input', '3–6S LiPo'], ['Firmware', 'BLHeli_32 / AM32 / Bluejay'], ['Protocol', 'DShot600, bidirectional'], ['Mount', '30.5 × 30.5 mm, M3 soft-mount'], ['Extras', 'Current sensor, onboard TVS']] },
+
+  { id: 'fc', group: 'Flight electronics', name: 'Flight controller', sub: 'F7 · 30.5 × 30.5', qty: 1, mass: 8, sw: '#1d1f22',
+    role: 'The brain. Reads the gyro thousands of times a second and mixes stick input into motor commands.',
+    specs: [['MCU', 'STM32F722, 216 MHz'], ['IMU', 'ICM-42688-P gyro/accel'], ['Barometer', 'DPS310'], ['Blackbox', '16 MB flash'], ['UARTs', '5, plus I²C for GPS compass'], ['Firmware', 'Betaflight or INAV'], ['Connector', 'USB-C for setup']] },
+  { id: 'gps', group: 'Flight electronics', name: 'GPS module', sub: 'M10 · 20 × 20', qty: 1, mass: 7, sw: '#cbb68c',
+    role: 'Gives position for GPS Rescue, which flies the quad home if the radio link drops.',
+    specs: [['Chipset', 'u-blox M10 class'], ['Antenna', '18 × 18 mm ceramic patch'], ['Constellations', 'GPS, Galileo, GLONASS, BeiDou'], ['Update rate', '10 Hz'], ['Interface', 'UART + I²C compass']] },
+  { id: 'rx', group: 'Flight electronics', name: 'Radio receiver', sub: 'ExpressLRS 2.4 GHz', qty: 1, mass: 1.5, sw: '#3a6fb0',
+    role: 'Receives stick commands from your transmitter and sends telemetry back. The T-antenna runs along the rear arms.',
+    specs: [['Protocol', 'ExpressLRS'], ['Band', '2.4 GHz'], ['Rate', 'up to 500 Hz'], ['Antenna', 'T-dipole in protective tubes'], ['Size', '18 × 11 mm, heat-shrunk']] },
+
+  { id: 'cam', group: 'Video & radio', name: 'FPV camera', sub: '19 mm micro', qty: 1, mass: 6.5, sw: '#0f1012',
+    role: 'The pilot’s eye. Low-latency video goes to the VTX and on to your goggles. Tilted up 25° so you can see ahead in fast forward flight.',
+    specs: [['Size', '19 × 19 mm'], ['Lens', '2.1 mm, ≈155° FOV'], ['Uptilt', '25°'], ['Latency', '< 10 ms'], ['Power', '5 V from FC']] },
+  { id: 'vtx', group: 'Video & radio', name: 'Video transmitter', sub: '5.8 GHz · 30.5 mm', qty: 1, mass: 7, sw: '#14233a',
+    role: 'Sends the camera feed to your goggles on 5.8 GHz. Power is adjustable from the radio.',
+    specs: [['Band', '5.8 GHz, 48 channels'], ['Power', '25 / 200 / 400 / 1000 mW'], ['Control', 'SmartAudio from FC'], ['Connector', 'MMCX'], ['Mount', '30.5 × 30.5 mm, top of stack']] },
+  { id: 'vant', group: 'Video & radio', name: 'VTX antenna', sub: '5.8 GHz RHCP', qty: 1, mass: 4, sw: '#2b2e33',
+    role: 'Circularly polarised omni antenna. It points up and back, clear of the props and carbon, for the cleanest signal.',
+    specs: [['Polarisation', 'RHCP'], ['Gain', '≈2 dBi'], ['Connector', 'MMCX, 80 mm lead'], ['Mount', 'TPU clamp on rear standoff, 30° up']] },
+
+  { id: 'battery', group: 'Power', name: 'LiPo battery', sub: '6S', qty: 1, mass: null, sw: '#15171a',
+    role: 'Six lithium-polymer cells in series. It rides on top of the frame to keep the heavy mass near the centre of thrust.',
+    specs: null },
+  { id: 'cap', group: 'Power', name: 'Low-ESR capacitor', sub: '1000 µF 35 V', qty: 1, mass: 4, sw: '#1d2a3a',
+    role: 'Soaks up the voltage spikes from ESC switching that would otherwise show as video noise or kill electronics.',
+    specs: [['Capacitance', '1000 µF'], ['Voltage', '35 V (6S max 25.2 V)'], ['Size', '10 × 20 mm'], ['Fitted', 'Across the ESC battery pads']] },
+  { id: 'lead', group: 'Power', name: 'Power lead', sub: 'XT60 · 12 AWG', qty: 1, mass: 9, sw: '#e8b21e',
+    role: 'Main battery pigtail from the ESC to the XT60 connector that the battery plugs into.',
+    specs: [['Wire', '12 AWG silicone, 70 mm'], ['Connector', 'XT60 male, 60 A continuous'], ['Routing', 'Out the rear, between the plates']] },
+];
+const C = Object.fromEntries(COMPONENTS.map(c => [c.id, c]));
+function batterySpecs(b) {
+  return [['Cells', '6S, 22.2 V nominal, 25.2 V full'], ['Capacity', `${b.mah} mAh · ${(22.2 * b.mah / 1000).toFixed(1)} Wh`], ['Discharge', `${b.c}C`], ['Size', `${b.L} × ${b.W} × ${b.H} mm`], ['Connector', 'XT60 female, 12 AWG']];
+}
+function syncBattery() { C.battery.mass = batt.mass; C.battery.sub = `6S ${batt.mah} mAh`; C.battery.specs = batterySpecs(batt); }
+syncBattery();
+
+/* Motor layout: front is +Z, the pilot's right is -X (looking forward from behind). */
+const R45 = 112.5 * Math.SQRT1_2;
+const MOTORS = [
+  { n: 1, x: -R45, z: -R45, cw: true,  front: false },
+  { n: 2, x: -R45, z:  R45, cw: false, front: true },
+  { n: 3, x:  R45, z: -R45, cw: false, front: false },
+  { n: 4, x:  R45, z:  R45, cw: true,  front: true },
+];
+
+/* ------------------------------------------------------------ materials */
+function carbonTexture() {
+  const s = 64, n = 8, cell = s / n, c = document.createElement('canvas');
+  c.width = c.height = s; const g = c.getContext('2d');
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+    const horiz = Math.floor((i + j) / 2) % 2 === 0;
+    const gr = horiz ? g.createLinearGradient(i * cell, 0, (i + 1) * cell, 0) : g.createLinearGradient(0, j * cell, 0, (j + 1) * cell);
+    gr.addColorStop(0, '#15171a'); gr.addColorStop(0.5, '#34383e'); gr.addColorStop(1, '#15171a');
+    g.fillStyle = gr; g.fillRect(i * cell, j * cell, cell, cell);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1 / 22, 1 / 22); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+  return t;
+}
+function labelTexture(b) {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 512; const g = c.getContext('2d');
+  g.fillStyle = '#141619'; g.fillRect(0, 0, 1024, 512);
+  g.fillStyle = '#ff6a1f'; g.fillRect(0, 300, 1024, 64);
+  // the strap covers the middle ~30% of each side, so text sits in the two outer thirds
+  g.fillStyle = '#f2f2f0'; g.textBaseline = 'alphabetic';
+  g.font = '800 170px Arial, Helvetica, sans-serif'; g.fillText('6S', 60, 230);
+  g.font = '800 150px Arial, Helvetica, sans-serif'; g.fillText(String(b.mah), 680, 215);
+  g.font = '700 64px Arial, Helvetica, sans-serif'; g.fillText('mAh', 690, 285);
+  g.fillStyle = '#141619'; g.font = '700 44px Arial, Helvetica, sans-serif';
+  g.fillText('22.2 V LiPo', 60, 348); g.fillText(`${b.c}C · ${(22.2 * b.mah / 1000).toFixed(1)} Wh`, 680, 348);
+  g.fillStyle = '#9aa0a8'; g.font = '500 32px Arial, Helvetica, sans-serif';
+  g.fillText('min 3.5 V / cell', 60, 440); g.fillText('balance charge only', 680, 440);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+const std = (color, roughness = 0.5, metalness = 0, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness, metalness, ...extra });
+const phys = o => new THREE.MeshPhysicalMaterial(o);
+const MAT = {
+  carbon: phys({ color: 0xffffff, map: carbonTexture(), roughness: 0.4, metalness: 0.1, clearcoat: 0.8, clearcoatRoughness: 0.22 }),
+  standoff: std(0x353a41, 0.32, 0.9),
+  gunmetal: std(0x4a4f57, 0.3, 0.95),
+  base: std(0x2b2f35, 0.38, 0.9),
+  ring: std(0xe0601f, 0.35, 0.75),
+  ti: std(0x8f8b84, 0.3, 1),
+  pcb: std(0x121417, 0.55, 0.05),
+  pcbBlue: std(0x152742, 0.5, 0.05),
+  gold: std(0xd6aa4f, 0.28, 1),
+  chip: std(0x1e2023, 0.36, 0.1),
+  silver: std(0xc9cdd3, 0.22, 1),
+  copper: std(0xb7703c, 0.32, 1),
+  white: std(0xe9e6df, 0.6, 0),
+  nylon: std(0xe8b21e, 0.5, 0),
+  rubber: std(0x2a2c30, 0.85, 0),
+  wire: std(0x1f2125, 0.55, 0),
+  red: std(0xb3261e, 0.5, 0),
+  coax: std(0x2b2e33, 0.5, 0),
+  tpu: std(0x353940, 0.75, 0),
+  camBody: std(0x141517, 0.4, 0.2),
+  glass: phys({ color: 0x0d1a33, roughness: 0.04, metalness: 0.4, clearcoat: 1, clearcoatRoughness: 0.02 }),
+  propFront: phys({ color: 0xff6a1f, roughness: 0.3, transparent: true, opacity: 0.9, clearcoat: 0.6, side: THREE.DoubleSide }),
+  propRear: phys({ color: 0x2b3139, roughness: 0.3, transparent: true, opacity: 0.92, clearcoat: 0.6, side: THREE.DoubleSide }),
+  batt: std(0x15171a, 0.45, 0.1),
+  strap: std(0x26282c, 0.85, 0),
+  alu: std(0xa4abb4, 0.3, 0.95),
+  ceramic: std(0xcbb68c, 0.7, 0),
+  shrink: phys({ color: 0x3a6fb0, roughness: 0.3, transparent: true, opacity: 0.6 }),
+  capWrap: std(0x1d2a3a, 0.4, 0.15),
+  capStripe: std(0x9aa6b5, 0.4, 0.15),
+  ledBlue: std(0x3aa0ff, 0.4, 0, { emissive: 0x3aa0ff, emissiveIntensity: 1.4 }),
+  ledGreen: std(0x3cff7a, 0.4, 0, { emissive: 0x3cff7a, emissiveIntensity: 1.4 }),
+  ledRed: std(0xff3b3b, 0.4, 0, { emissive: 0xff3b3b, emissiveIntensity: 1.4 }),
+};
+
+/* ------------------------------------------------------------- helpers */
+const D2R = Math.PI / 180;
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+function add(parent, geo, mat, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0, name) {
+  const m = new THREE.Mesh(geo, Array.isArray(mat) ? mat.map(mm => mm.clone()) : mat.clone());
+  m.position.set(x, y, z); m.rotation.set(rx, ry, rz);
+  m.castShadow = true; m.receiveShadow = true;
+  if (name) m.name = name;
+  parent.add(m); return m;
+}
+const cyl = (r, h, seg = 32, r2 = r) => new THREE.CylinderGeometry(r2, r, h, seg);
+function rbox(w, h, d, r = 0.4) {
+  const rr = Math.min(r, Math.min(w, h, d) / 2 - 0.01);
+  return rr > 0.05 ? new RoundedBoxGeometry(w, h, d, 2, rr) : new THREE.BoxGeometry(w, h, d);
+}
+function tube(parent, pts, r, mat, name) {
+  const curve = new THREE.CatmullRomCurve3(pts.map(p => V(...p)));
+  return add(parent, new THREE.TubeGeometry(curve, 48, r, 8, false), mat, 0, 0, 0, 0, 0, 0, name);
+}
+function roundRect(shapeOrPath, x, y, w, h, r) {
+  const s = shapeOrPath;
+  s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r);
+  s.lineTo(x + w, y + h - r); s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  s.lineTo(x + r, y + h); s.quadraticCurveTo(x, y + h, x, y + h - r);
+  s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y);
+  return s;
+}
+function hole(shape, x, y, r) { const p = new THREE.Path(); p.absarc(x, y, r, 0, Math.PI * 2, true); shape.holes.push(p); }
+function slot(shape, x, y, w, h) { shape.holes.push(roundRect(new THREE.Path(), x, y, w, h, Math.min(w, h) / 2 - 0.01)); }
+/* Extrude a shape drawn in plan view (shape x = world x, shape y = world -z) upward from y0. */
+function plate(shape, thick, bevel = 0.4) {
+  const g = new THREE.ExtrudeGeometry(shape, { depth: thick - 2 * bevel, bevelEnabled: bevel > 0, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 2, curveSegments: 20 });
+  g.rotateX(-Math.PI / 2); g.translate(0, bevel, 0); return g;
+}
+const STACK = 15.25;
+const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+
+/* -------------------------------------------------------------- scene */
+const view = document.getElementById('view');
+const canvas = document.getElementById('c');
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
+} catch (e) {
+  view.insertAdjacentHTML('beforeend', '<div class="err">This page needs WebGL to show the 3D model. Try a different browser or turn on hardware acceleration.</div>');
+  throw e;
+}
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.setClearColor(0x000000, 0);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.75;
+
+const camera = new THREE.PerspectiveCamera(32, 1, 0.005, 20);
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.dampingFactor = 0.08;
+controls.minDistance = 0.12; controls.maxDistance = 2.2; controls.maxPolarAngle = Math.PI * 0.86;
+
+scene.add(new THREE.HemisphereLight(0xdfe8ff, 0x30281f, 0.6));
+const key = new THREE.DirectionalLight(0xffffff, 2.3);
+key.position.set(0.35, 0.9, 0.45); key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+Object.assign(key.shadow.camera, { left: -0.45, right: 0.45, top: 0.45, bottom: -0.45, near: 0.1, far: 2.5 });
+key.shadow.bias = -0.0004; key.shadow.normalBias = 0.0015;
+scene.add(key);
+const rim = new THREE.DirectionalLight(0xbcd2ff, 0.9); rim.position.set(-0.6, 0.35, -0.7); scene.add(rim);
+
+const GROUND_Y = -0.0042;
+const shadowMat = new THREE.ShadowMaterial({ opacity: 0.2 });
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(3, 3), shadowMat);
+ground.rotation.x = -Math.PI / 2; ground.position.y = GROUND_Y; ground.receiveShadow = true; scene.add(ground);
+let grid;
+function applyTheme() {
+  const cs = getComputedStyle(document.documentElement);
+  const tok = n => cs.getPropertyValue(n).trim() || '#888888';
+  if (grid) { scene.remove(grid); grid.geometry.dispose(); grid.material.dispose(); }
+  grid = new THREE.GridHelper(0.6, 24, new THREE.Color(tok('--grid-strong')), new THREE.Color(tok('--grid')));
+  grid.position.y = GROUND_Y + 0.0002; scene.add(grid);
+  shadowMat.opacity = parseFloat(tok('--shadow')) || 0.2;
+}
+applyTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+const root = new THREE.Group(); root.name = 'Kestrel5'; root.scale.setScalar(0.001); scene.add(root);
+
+/* parts registry: one entry per placed object, with its exploded-view offset (mm) */
+const parts = [];
+function place(compId, obj, off, name) {
+  obj.name = name || C[compId].name;
+  obj.userData.component = compId;
+  obj.traverse(o => { if (o.isMesh) o.userData.comp = compId; });
+  root.add(obj);
+  const p = { comp: compId, obj, base: obj.position.clone(), off: V(...off) };
+  parts.push(p); return p;
+}
+function unplace(compId) {
+  for (let i = parts.length - 1; i >= 0; i--) if (parts[i].comp === compId) {
+    const o = parts[i].obj; root.remove(o);
+    o.traverse(m => { if (m.isMesh) { m.geometry.dispose(); [].concat(m.material).forEach(mm => mm.dispose()); } });
+    parts.splice(i, 1);
+  }
+}
+
+/* ------------------------------------------------------------- airframe */
+function armShape() {
+  const s = new THREE.Shape(), R = 112.5, rr = 14;
+  const a1 = 218 * D2R, a2 = 142 * D2R + Math.PI * 2;
+  s.moveTo(22, -12.5);
+  s.lineTo(R + rr * Math.cos(a1), rr * Math.sin(a1));
+  s.absarc(R, 0, rr, a1, a2, false);
+  s.lineTo(22, 12.5); s.lineTo(22, -12.5);
+  hole(s, R, 0, 4.4);
+  for (const [sx, sy] of corners) hole(s, R + 8 * sx, 8 * sy, 1.65);
+  const sl = new THREE.Path();
+  sl.moveTo(44, -3.2); sl.lineTo(84, -2.4); sl.absarc(84, 0, 2.4, -Math.PI / 2, Math.PI / 2, false);
+  sl.lineTo(44, 3.2); sl.absarc(44, 0, 3.2, Math.PI / 2, Math.PI * 1.5, false);
+  s.holes.push(sl);
+  return s;
+}
+function buildFrame() {
+  const lower = new THREE.Group();
+  // unibody bottom plate (z from -64 to +64)
+  const bs = roundRect(new THREE.Shape(), -23, -64, 46, 128, 9);
+  for (const [sx, sy] of corners) hole(bs, STACK * sx, STACK * sy, 1.65);
+  for (const [sx, sy] of [[-17, -54], [17, -54], [-17, 56], [17, 56]]) hole(bs, sx, -sy, 1.65);
+  slot(bs, -6, 26, 12, 22); slot(bs, -6, -48, 12, 18);
+  add(lower, plate(bs, 4.6), MAT.carbon, 0, 0.2, 0, 0, 0, 0, 'Bottom plate');
+  for (const m of MOTORS) {
+    add(lower, plate(armShape(), 5.6), MAT.carbon, 0, -0.2, 0, 0, Math.atan2(-m.z, m.x), 0, `Arm M${m.n}`);
+  }
+  // camera side plates (drawn in the side profile: shape x = world z, shape y = world y)
+  const cp = new THREE.Shape();
+  cp.moveTo(30, 5); cp.lineTo(62, 5); cp.lineTo(62, 18); cp.quadraticCurveTo(61, 33, 50, 35); cp.lineTo(30, 35); cp.lineTo(30, 5);
+  hole(cp, 46, 20, 1.2);
+  for (const sx of [1, -1]) {
+    const g = new THREE.ExtrudeGeometry(cp, { depth: 1.6, bevelEnabled: true, bevelThickness: 0.2, bevelSize: 0.2, bevelSegments: 1, curveSegments: 16 });
+    g.rotateY(-Math.PI / 2);
+    add(lower, g, MAT.carbon, sx > 0 ? 12.4 : -10.6, 0, 0, 0, 0, 0, 'Camera side plate');
+  }
+  place('frame', lower, [0, 0, 0], 'Frame lower');
+
+  const posts = new THREE.Group();
+  for (const [x, z] of [[-17, -54], [17, -54], [-17, 56], [17, 56]]) add(posts, cyl(2.5, 29.6, 6), MAT.standoff, x, 5.4 + 14.8, z, 0, Math.PI / 6, 0, 'Standoff 30 mm');
+  place('frame', posts, [0, 100, 0], 'Standoffs');
+
+  const ts = roundRect(new THREE.Shape(), -21, -62, 42, 122, 8);
+  for (const sx of [-1, 1]) slot(ts, sx * 18.5 - 1.25, -18, 2.5, 22);
+  for (const [x, z] of [[-17, -54], [17, -54], [-17, 56], [17, 56]]) hole(ts, x, -z, 1.65);
+  slot(ts, -8, 30, 16, 18); slot(ts, -7, -2, 14, 10);
+  const top = new THREE.Group();
+  add(top, plate(ts, 2), MAT.carbon, 0, 35, 0, 0, 0, 0, 'Top plate');
+  place('frame', top, [0, 125, 0], 'Top plate');
+}
+
+function buildHardware() {
+  const g = new THREE.Group();
+  for (const [sx, sz] of corners) {
+    add(g, cyl(1.5, 34, 12), MAT.ti, STACK * sx, 16, STACK * sz, 0, 0, 0, 'M3 stack bolt');
+    add(g, cyl(2.8, 1.8, 16), MAT.ti, STACK * sx, -1.1, STACK * sz, 0, 0, 0, 'Bolt head');
+  }
+  for (const [x, z] of [[-17, -54], [17, -54], [-17, 56], [17, 56]]) {
+    add(g, cyl(2.8, 1.5, 16), MAT.ti, x, 37.75, z, 0, 0, 0, 'Top bolt head');
+    add(g, cyl(2.8, 1.5, 16), MAT.ti, x, -0.95, z, 0, 0, 0, 'Bottom bolt head');
+  }
+  for (const m of MOTORS) {
+    const a = Math.atan2(-m.z, m.x);
+    for (const [sx, sy] of corners) {
+      const lx = 112.5 + 8 * sx, lz = -8 * sy; // in arm-local, rotate into place
+      const x = lx * Math.cos(a) + lz * Math.sin(a), z = -lx * Math.sin(a) + lz * Math.cos(a);
+      add(g, cyl(2.7, 1.4, 12), MAT.ti, x, -1.1, z, 0, 0, 0, 'Motor bolt head');
+    }
+    // three motor leads along the arm, then up to the ESC corner pads
+    const dir = V(m.x, 0, m.z).normalize(), perp = V(-dir.z, 0, dir.x);
+    for (const k of [-1, 0, 1]) {
+      const o = perp.clone().multiplyScalar(k * 2.1);
+      const P = (r, y) => [dir.x * r + o.x, y, dir.z * r + o.z];
+      tube(g, [P(98, 6.6), P(70, 6.5), P(40, 6.6), P(27, 9), P(21.5, 12.4)], 0.95, MAT.wire, `Motor lead M${m.n}`);
+    }
+  }
+  place('hardware', g, [0, 0, 0]);
+}
+
+/* ------------------------------------------------------------- propulsion */
+function buildMotor(m) {
+  const g = new THREE.Group(); g.position.set(m.x, 5.4, m.z);
+  add(g, cyl(13.6, 3, 40), MAT.base, 0, 1.5, 0, 0, 0, 0, 'Motor base');
+  add(g, cyl(11.2, 1.6, 32), MAT.copper, 0, 3.8, 0, 0, 0, 0, 'Stator windings');
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * Math.PI * 2;
+    add(g, new THREE.BoxGeometry(2.4, 1.4, 1.6), MAT.copper, Math.cos(a) * 11.6, 3.7, Math.sin(a) * 11.6, 0, -a, 0, 'Stator tooth');
+  }
+  const prof = [[13.9, 4.4], [14.3, 4.8], [14.3, 17.4], [13.7, 19.0], [9, 19.7], [3.2, 20.1], [2.6, 20.1]].map(([x, y]) => new THREE.Vector2(x, y));
+  add(g, new THREE.LatheGeometry(prof, 48), MAT.gunmetal, 0, 0, 0, 0, 0, 0, 'Bell').material.side = THREE.DoubleSide;
+  add(g, cyl(14.45, 1.3, 48), MAT.ring, 0, 5.4, 0, 0, 0, 0, 'Bell ring');
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2 + 0.26;
+    add(g, new THREE.BoxGeometry(4.2, 0.6, 2.2), MAT.base, Math.cos(a) * 6.8, 19.95, Math.sin(a) * 6.8, 0, -a, 0, 'Bell vent');
+  }
+  add(g, cyl(2.5, 13, 20), MAT.ti, 0, 26.5, 0, 0, 0, 0, 'M5 shaft');
+  place('motor', g, [m.x * 0.42, 14, m.z * 0.42], `Motor M${m.n} (${m.cw ? 'CW' : 'CCW'})`);
+}
+
+/* Lofted propeller blade: stations along the radius, each a thin cambered ellipse rotated to the local pitch angle. */
+function bladeGeometry(dir) {
+  const R = 65, r0 = 4.5, P = 109.2, N = 22, M = 16, pos = [], idx = [];
+  for (let i = 0; i < N; i++) {
+    const s = i / (N - 1), r = r0 + (R - r0) * s;
+    let c = 8.5 + 30 * s * Math.pow(1 - s, 1.25);
+    if (s > 0.86) c *= Math.sqrt(Math.max(0.02, 1 - Math.pow((s - 0.86) / 0.14, 2)));
+    c = Math.max(c, 0.8);
+    const t = 0.65 + 2.2 * Math.pow(1 - s, 3);
+    const th = Math.atan(P / (2 * Math.PI * Math.max(r, 17)));
+    const uc = -5.5 * s * s;
+    for (let j = 0; j < M; j++) {
+      const ph = (j / M) * Math.PI * 2;
+      const u0 = (c / 2) * Math.cos(ph);
+      const v = (t / 2) * Math.sin(ph) + 0.05 * c * (1 - Math.pow(2 * u0 / c, 2));
+      const u = u0 + uc;
+      pos.push(r, u * Math.sin(th) + v * Math.cos(th), dir * (u * Math.cos(th) - v * Math.sin(th)));
+    }
+  }
+  for (let i = 0; i < N - 1; i++) for (let j = 0; j < M; j++) {
+    const a = i * M + j, b = i * M + (j + 1) % M, c2 = (i + 1) * M + j, d = (i + 1) * M + (j + 1) % M;
+    if (dir > 0) idx.push(a, c2, b, b, c2, d); else idx.push(a, b, c2, b, d, c2);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
+  return g;
+}
+const spinners = [];
+function buildProp(m) {
+  const g = new THREE.Group(); g.position.set(m.x, 5.4 + 20.1, m.z);
+  const rotor = new THREE.Group(); rotor.name = 'Rotor'; g.add(rotor);
+  const mat = m.front ? MAT.propFront : MAT.propRear;
+  const blade = bladeGeometry(m.cw ? 1 : -1);
+  add(rotor, cyl(6.6, 7, 32), mat, 0, 3.5, 0, 0, 0, 0, 'Hub');
+  for (let k = 0; k < 3; k++) add(rotor, blade, mat, 0, 3.6, 0, 0, (k * 2 * Math.PI) / 3 + 0.3, 0, `Blade ${k + 1}`);
+  add(rotor, cyl(4.3, 5, 6), MAT.silver, 0, 9.5, 0, 0, 0, 0, 'M5 nylock nut');
+  add(rotor, cyl(3.2, 1.2, 20), MAT.ring, 0, 12.4, 0, 0, 0, 0, 'Nut insert');
+  spinners.push({ rotor, sign: m.cw ? -1 : 1 });
+  place('prop', g, [m.x * 0.42, 72, m.z * 0.42], `Prop M${m.n} (${m.cw ? 'CW' : 'CCW'})`);
+}
+
+function boardBase(g, y, mat) {
+  add(g, rbox(36, 1.6, 36, 2.2), mat, 0, y, 0, 0, 0, 0, 'PCB');
+  for (const [sx, sz] of corners) add(g, cyl(2.5, 1.7, 20), MAT.gold, STACK * sx, y + 0.02, STACK * sz, 0, 0, 0, 'Mount pad');
+}
+function buildESC() {
+  const g = new THREE.Group(), y = 11;
+  for (const [sx, sz] of corners) add(g, cyl(2.7, 4.8, 16), MAT.rubber, STACK * sx, 7.6, STACK * sz, 0, 0, 0, 'Soft-mount grommet');
+  boardBase(g, y, MAT.pcb);
+  const top = y + 0.8;
+  for (const [sx, sz] of corners) {
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) add(g, new THREE.BoxGeometry(3.3, 1, 3.3), MAT.chip, sx * (5 + i * 3.8), top + 0.5, sz * (5.5 + j * 4.2), 0, 0, 0, 'MOSFET');
+    add(g, new THREE.BoxGeometry(3.6, 0.9, 3.6), MAT.chip, sx * 3, top + 0.45, sz * 13.5, 0, Math.PI / 4, 0, 'ESC MCU');
+    for (let k = -1; k <= 1; k++) add(g, new THREE.BoxGeometry(2.2, 0.2, 3.2), MAT.gold, sx * 17, top + 0.1, sz * (9 + k * 2.8), 0, 0, 0, 'Motor pad');
+  }
+  for (const sx of [-1, 1]) add(g, new THREE.BoxGeometry(6, 0.3, 4), MAT.gold, sx * 5, top + 0.15, -15.5, 0, 0, 0, 'Battery pad');
+  add(g, new THREE.BoxGeometry(8, 1.2, 3), MAT.white, 0, top + 0.6, 15.5, 0, 0, 0, 'FC connector');
+  place('esc', g, [0, 28, 0]);
+}
+
+/* -------------------------------------------------------- flight electronics */
+function buildFC() {
+  const g = new THREE.Group(), y = 23;
+  for (const [sx, sz] of corners) add(g, cyl(2.6, 10.4, 16), MAT.rubber, STACK * sx, 17, STACK * sz, 0, 0, 0, 'Nylon spacer');
+  boardBase(g, y, MAT.pcb);
+  const t = y + 0.8;
+  add(g, new THREE.BoxGeometry(10, 1.2, 10), MAT.chip, 1.5, t + 0.6, -1.5, 0, Math.PI / 4, 0, 'STM32F722 MCU');
+  add(g, new THREE.BoxGeometry(3, 0.9, 3), MAT.chip, -6, t + 0.45, 6, 0, 0, 0, 'ICM-42688-P IMU');
+  add(g, new THREE.BoxGeometry(2.5, 1, 2.5), MAT.silver, 8, t + 0.5, 8, 0, 0, 0, 'Barometer');
+  add(g, new THREE.BoxGeometry(6, 1, 5), MAT.chip, 8.5, t + 0.5, -9, 0, 0, 0, 'Blackbox flash');
+  add(g, rbox(3.4, 3.2, 9, 1.2), MAT.silver, -17.2, t + 1.6, 0, 0, 0, 0, 'USB-C port');
+  for (const [x, z, ry] of [[-11, 15.6, 0], [3, 15.6, 0], [-11, -15.6, 0], [15.6, 3, Math.PI / 2]]) add(g, new THREE.BoxGeometry(7, 3, 4), MAT.white, x, t + 1.5, z, 0, ry, 0, 'JST-SH connector');
+  add(g, new THREE.BoxGeometry(1.6, 0.6, 1), MAT.ledBlue, -4, t + 0.3, -11, 0, 0, 0, 'Status LED');
+  add(g, new THREE.BoxGeometry(1.6, 0.6, 1), MAT.ledGreen, -1.5, t + 0.3, -11, 0, 0, 0, 'Power LED');
+  place('fc', g, [0, 58, 0]);
+}
+function buildGPS() {
+  const g = new THREE.Group();
+  add(g, rbox(21, 6, 21, 1.6), MAT.camBody, 0, 37 + 3, -46, 0, 0, 0, 'GPS housing');
+  add(g, rbox(18, 3.6, 18, 0.5), MAT.ceramic, 0, 43 + 1.8, -46, 0, 0, 0, 'Ceramic patch');
+  add(g, cyl(1.4, 0.4, 16), MAT.silver, 0, 46.8, -46, 0, 0, 0, 'Feed point');
+  add(g, new THREE.BoxGeometry(1.2, 0.5, 1.2), MAT.ledRed, 8.5, 43.1, -38, 0, 0, 0, 'Fix LED');
+  place('gps', g, [0, 150, -10]);
+}
+function buildRX() {
+  const g = new THREE.Group();
+  add(g, new THREE.BoxGeometry(18, 1, 11), MAT.pcb, 0, 6.2, -50, 0, 0, 0, 'RX board');
+  add(g, new THREE.BoxGeometry(4, 0.9, 4), MAT.chip, -3, 7.1, -50, 0, 0, 0, 'RF chip');
+  add(g, rbox(19.5, 3.2, 12.5, 1.2), MAT.shrink, 0, 6.9, -50, 0, 0, 0, 'Heat shrink');
+  for (const m of MOTORS.filter(mm => !mm.front)) {
+    const dir = V(m.x, 0, m.z).normalize();
+    const P = (r, y) => [dir.x * r, y, dir.z * r];
+    tube(g, [[Math.sign(m.x) * 6, 7, -54], [Math.sign(m.x) * 16, 7.4, -58], P(58, 6.9), P(64, 6.9)], 0.7, MAT.coax, 'RX antenna lead');
+    const a = Math.atan2(-dir.z, dir.x);
+    add(g, cyl(1.3, 28, 12), MAT.white, dir.x * 77, 6.9, dir.z * 77, 0, a, Math.PI / 2, 'Antenna tube');
+    for (const r of [68, 88]) add(g, new THREE.BoxGeometry(2.4, 7.4, 23.5), MAT.wire, dir.x * r, 2.8, dir.z * r, 0, a, 0, 'Zip tie');
+  }
+  place('rx', g, [0, 0, -62]);
+}
+
+/* ----------------------------------------------------------- video & radio */
+function buildCam() {
+  const g = new THREE.Group(); g.position.set(0, 20, 46);
+  const tilt = new THREE.Group(); tilt.rotation.x = -25 * D2R; g.add(tilt);
+  add(tilt, rbox(19, 19, 16, 1.6), MAT.camBody, 0, 0, 0, 0, 0, 0, 'Camera body');
+  add(tilt, cyl(7.2, 3, 32), MAT.camBody, 0, 0, 9.4, Math.PI / 2, 0, 0, 'Lens mount');
+  add(tilt, cyl(6.2, 6, 32), MAT.chip, 0, 0, 13.5, Math.PI / 2, 0, 0, 'Lens barrel');
+  add(tilt, cyl(6.5, 1.2, 40), MAT.gunmetal, 0, 0, 12, Math.PI / 2, 0, 0, 'Focus ring');
+  add(tilt, new THREE.SphereGeometry(4.6, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2.6), MAT.glass, 0, 0, 15.4, Math.PI / 2, 0, 0, 'Lens glass');
+  for (const sx of [-1, 1]) add(tilt, cyl(1.3, 1, 12), MAT.ti, sx * 9.8, 0, 0, 0, 0, Math.PI / 2, 'M2 side screw');
+  add(tilt, new THREE.BoxGeometry(8, 3, 2), MAT.white, 0, -5, -8.6, 0, 0, 0, 'Camera connector');
+  place('cam', g, [0, 6, 72]);
+}
+function buildVTX() {
+  const g = new THREE.Group(), y = 31;
+  for (const [sx, sz] of corners) add(g, cyl(2.6, 6.4, 16), MAT.rubber, STACK * sx, 27, STACK * sz, 0, 0, 0, 'Nylon spacer');
+  boardBase(g, y, MAT.pcbBlue);
+  add(g, rbox(18, 2.4, 16, 0.4), MAT.silver, 1, y + 2, 0, 0, 0, 0, 'RF shield can');
+  add(g, cyl(1.7, 3, 16), MAT.gold, 0, y + 2.3, -15.5, 0, 0, 0, 'MMCX socket');
+  add(g, new THREE.BoxGeometry(2.6, 1.2, 2.6), MAT.chip, -13, y + 1.4, 12, 0, 0, 0, 'Channel button');
+  add(g, new THREE.BoxGeometry(1.4, 0.6, 1), MAT.ledRed, -13, y + 1.1, 7.5, 0, 0, 0, 'Band LED');
+  add(g, new THREE.BoxGeometry(6, 2.4, 3.6), MAT.white, 11, y + 2, 14, 0, 0, 0, 'Power connector');
+  place('vtx', g, [0, 88, 0]);
+}
+function buildVTXAntenna() {
+  const g = new THREE.Group();
+  tube(g, [[0, 33.6, -15.5], [0, 34.5, -24], [6, 30, -40], [11, 25, -55], [12, 24, -63]], 0.9, MAT.coax, 'Coax lead');
+  add(g, rbox(12, 13, 10, 2), MAT.tpu, 14, 24, -57, 0, 0, 0, 'TPU antenna mount');
+  // antenna axis (local +Y) points backward and 30° up
+  const ant = new THREE.Group(); ant.position.set(12, 24, -63); ant.rotation.x = -(90 - 30) * D2R; g.add(ant);
+  add(ant, cyl(2.4, 44, 16), MAT.coax, 0, 22, 0, 0, 0, 0, 'Antenna stem');
+  add(ant, cyl(2.8, 6, 16), MAT.gold, 0, 2.5, 0, 0, 0, 0, 'MMCX plug');
+  const head = add(ant, new THREE.SphereGeometry(8.5, 32, 20), MAT.coax, 0, 50, 0, 0, 0, 0, 'Lollipop element');
+  head.scale.set(1, 0.6, 1);
+  place('vant', g, [24, 26, -56]);
+}
+
+/* ------------------------------------------------------------------ power */
+function buildBattery(b) {
+  const g = new THREE.Group(), cz = 7, y0 = 38.2;
+  const label = new THREE.MeshStandardMaterial({ map: labelTexture(b), roughness: 0.45, metalness: 0.1 });
+  const plain = MAT.batt;
+  add(g, rbox(b.W, b.H, b.L, 3), [label, label, plain, plain, plain, plain], 0, y0 + b.H / 2, cz, 0, 0, 0, 'LiPo pack');
+  const rearZ = cz - b.L / 2;
+  add(g, new THREE.BoxGeometry(b.W - 6, b.H - 10, 0.8), MAT.capStripe, 0, y0 + b.H / 2, rearZ - 0.2, 0, 0, 0, 'Cell end tape');
+  add(g, rbox(16, 8.2, 15, 1.2), MAT.nylon, 0, 41, -88, 0, 0, 0, 'XT60 female');
+  tube(g, [[-4, y0 + b.H - 10, rearZ], [-4, y0 + b.H - 6, rearZ - 18], [-4, 54, -82], [-3.5, 41, -96]], 2.2, MAT.red, 'Battery lead +');
+  tube(g, [[4, y0 + b.H - 10, rearZ], [4, y0 + b.H - 6, rearZ - 18], [4, 54, -82], [3.5, 41, -96]], 2.2, MAT.wire, 'Battery lead -');
+  tube(g, [[0, y0 + 10, rearZ], [0, y0 + 14, rearZ - 10], [0, y0 + 20, rearZ - 6]], 0.8, MAT.white, 'Balance lead');
+  add(g, new THREE.BoxGeometry(17, 3, 5), MAT.white, 0, y0 + 20.5, rearZ - 5, 0, 0, 0, 'Balance plug');
+  place('battery', g, [0, 168, 0], `LiPo 6S ${b.mah} mAh`);
+}
+function buildStrap(b) {
+  const g = new THREE.Group(), cz = 7, top = 38.2 + b.H;
+  const outer = roundRect(new THREE.Shape(), -b.W / 2 - 1.2, 33.8, b.W + 2.4, top - 33.8 + 1.2, 3.4);
+  outer.holes.push(roundRect(new THREE.Path(), -b.W / 2 - 0.1, 34.9, b.W + 0.2, top - 34.9 + 0.1, 2.6));
+  const geo = new THREE.ExtrudeGeometry(outer, { depth: 20, bevelEnabled: false, curveSegments: 10 });
+  add(g, geo, MAT.strap, 0, 0, cz - 10, 0, 0, 0, 'Strap');
+  add(g, rbox(14, 2.2, 22, 0.8), MAT.alu, 0, top + 1.8, cz, 0, 0, 0, 'Buckle');
+  add(g, new THREE.BoxGeometry(b.W - 2, 1.1, b.L - 4), MAT.rubber, 0, 37.6, cz, 0, 0, 0, 'Grip pad');
+  place('strap', g, [0, 168, 0]);
+}
+function buildCap() {
+  const g = new THREE.Group();
+  add(g, cyl(5, 20, 32), MAT.capWrap, 0, 10.6, -31, 0, 0, Math.PI / 2, 'Capacitor can');
+  add(g, new THREE.CylinderGeometry(5.06, 5.06, 20, 12, 1, true, 0, 0.9), MAT.capStripe, 0, 10.6, -31, 0, 0, Math.PI / 2, 'Polarity stripe').material.side = THREE.DoubleSide;
+  for (const sx of [-1, 1]) tube(g, [[sx * 10, 10.6, -31], [sx * 11.5, 11.4, -24], [sx * 5, 12.2, -16]], 0.45, MAT.silver, 'Capacitor leg');
+  place('cap', g, [0, 0, -40]);
+}
+function buildLead() {
+  const g = new THREE.Group();
+  tube(g, [[-5, 12.3, -15], [-4.5, 18, -30], [-4, 22, -48], [-4, 26, -62], [-3.5, 41, -73]], 2.2, MAT.red, 'Power lead +');
+  tube(g, [[5, 12.3, -15], [4.5, 18, -30], [4, 22, -48], [4, 26, -62], [3.5, 41, -73]], 2.2, MAT.wire, 'Power lead -');
+  add(g, rbox(16, 8.2, 15, 1.2), MAT.nylon, 0, 41, -73.5, 0, 0, 0, 'XT60 male');
+  for (const sx of [-1, 1]) add(g, cyl(1.9, 6, 16), MAT.gold, sx * 3.6, 41, -81, Math.PI / 2, 0, 0, 'XT60 pin');
+  place('lead', g, [0, 30, -44]);
+}
+
+/* ------------------------------------------------------------- assemble */
+buildFrame(); buildHardware();
+for (const m of MOTORS) { buildMotor(m); buildProp(m); }
+buildESC(); buildFC(); buildGPS(); buildRX();
+buildCam(); buildVTX(); buildVTXAntenna();
+buildBattery(batt); buildStrap(batt); buildCap(); buildLead();
+
+/* --------------------------------------------------------- interaction */
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const state = { explode: 0, explodeTarget: 0, spin: !reduceMotion, selected: null, hovered: null };
+const ORIG = new WeakMap();
+function eachMat(fn) {
+  root.traverse(o => { if (!o.isMesh) return; for (const m of [].concat(o.material)) fn(o, m); });
+}
+function applyHighlight() {
+  const accent = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#ff7a3a');
+  eachMat((o, m) => {
+    if (!ORIG.has(m)) ORIG.set(m, { transparent: m.transparent, opacity: m.opacity, depthWrite: m.depthWrite, emissive: m.emissive ? m.emissive.clone() : null, ei: m.emissiveIntensity });
+    const og = ORIG.get(m), sel = state.selected;
+    const isSel = sel && o.userData.comp === sel, dim = sel && !isSel;
+    const nt = dim ? true : og.transparent;
+    if (m.transparent !== nt) m.needsUpdate = true;
+    m.transparent = nt;
+    m.opacity = dim ? og.opacity * 0.14 : og.opacity;
+    m.depthWrite = dim ? false : og.depthWrite;
+    if (m.emissive && og.emissive) {
+      if (isSel) { m.emissive.copy(accent); m.emissiveIntensity = 0.22; }
+      else { m.emissive.copy(og.emissive); m.emissiveIntensity = og.ei; }
+    }
+    o.castShadow = !dim;
+  });
+}
+
+const fmtG = g => (g >= 100 ? g.toFixed(0) : g.toFixed(1)) + ' g';
+const lineMass = c => c.mass * c.qty;
+const card = document.getElementById('card');
+function renderCard() {
+  const c = state.selected && C[state.selected];
+  if (!c) { card.innerHTML = '<div class="hint">Click any part to inspect it. Drag to orbit, scroll or pinch to zoom.</div>'; return; }
+  card.innerHTML = `<div class="k">${c.group}</div><div class="n">${c.name}${c.qty > 1 ? ` <span style="font-weight:500;color:var(--muted)">×${c.qty}</span>` : ''}</div>
+    <div class="d">${c.sub} · ${c.qty > 1 ? `${fmtG(c.mass)} each, ${fmtG(lineMass(c))} total` : fmtG(c.mass)}</div>`;
+}
+
+const groupsEl = document.getElementById('groups');
+function renderParts() {
+  const total = COMPONENTS.reduce((s, c) => s + lineMass(c), 0);
+  document.getElementById('partCount').textContent = `${COMPONENTS.length} types · ${COMPONENTS.reduce((s, c) => s + c.qty, 0)} parts`;
+  groupsEl.innerHTML = GROUPS.map(gname => {
+    const list = COMPONENTS.filter(c => c.group === gname);
+    const gm = list.reduce((s, c) => s + lineMass(c), 0);
+    return `<div class="group"><div class="ghead"><span>${gname}</span><span>${fmtG(gm)} · ${Math.round(gm / total * 100)}%</span></div>
+      <ul class="parts">${list.map(c => {
+        const open = state.selected === c.id;
+        return `<li id="li-${c.id}"><button class="part" id="p-${c.id}" data-id="${c.id}" aria-expanded="${open}" aria-controls="d-${c.id}">
+          <span class="sw" style="--sw:${c.sw}"></span>
+          <span class="pn">${c.name}<small>${c.sub}</small></span>
+          <span class="pq">×${c.qty}</span><span class="pm">${fmtG(lineMass(c))}</span></button>
+          <div class="pd" id="d-${c.id}" ${open ? '' : 'hidden'}><p>${c.role}</p>
+          <dl>${c.specs.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}${c.qty > 1 ? `<dt>Unit mass</dt><dd>${fmtG(c.mass)}</dd>` : ''}</dl></div></li>`;
+      }).join('')}</ul></div>`;
+  }).join('');
+}
+groupsEl.addEventListener('click', e => {
+  const b = e.target.closest('.part'); if (!b) return;
+  select(state.selected === b.dataset.id ? null : b.dataset.id);
+});
+function select(id, fromScene) {
+  state.selected = id;
+  renderParts(); renderCard(); applyHighlight();
+  if (id && fromScene) document.getElementById('li-' + id)?.scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' });
+}
+
+/* build sheet */
+const MAX_THRUST = 1450;
+function renderStats() {
+  const dry = COMPONENTS.filter(c => c.id !== 'battery').reduce((s, c) => s + lineMass(c), 0);
+  const auw = dry + batt.mass, thrust = MAX_THRUST * 4, tw = thrust / auw;
+  const hoverThr = Math.pow(auw / 4 / MAX_THRUST, 1 / 1.6) * 100;
+  const hoverW = auw / 4.2, hoverA = hoverW / 22.2;
+  const usable = 0.8 * batt.mah / 1000;
+  const tHover = usable / (hoverA + 0.8) * 60, tFree = usable / (hoverA * 3.4 + 0.8) * 60;
+  document.getElementById('auwSmall').textContent = `with ${batt.mah} mAh pack`;
+  document.getElementById('stats').innerHTML = [
+    ['All-up weight', auw.toFixed(0), 'g', `battery ${batt.mass} g`],
+    ['Dry weight', dry.toFixed(0), 'g', 'without battery'],
+    ['Thrust-to-weight', tw.toFixed(1), ': 1', `${(thrust / 1000).toFixed(1)} kg max thrust`],
+    ['Hover throttle', hoverThr.toFixed(0), '%', `≈${hoverW.toFixed(0)} W at hover`],
+    ['Hover time', tHover.toFixed(1), 'min', 'gentle cruising'],
+    ['Freestyle time', tFree.toFixed(1), 'min', 'hard flying'],
+  ].map(([l, v, u, s]) => `<div class="stat"><div class="l">${l}</div><div class="v">${v}<small>${u}</small></div><div class="s">${s}</div></div>`).join('');
+}
+const battSeg = document.getElementById('battSeg');
+battSeg.innerHTML = BATTERIES.map((b, i) => `<button data-i="${i}" id="batt-${b.mah}" aria-pressed="${b === batt}">${b.mah} mAh</button>`).join('');
+battSeg.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  batt = BATTERIES[+b.dataset.i]; syncBattery();
+  battSeg.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  unplace('battery'); unplace('strap'); buildBattery(batt); buildStrap(batt); setExplode(state.explode);
+  renderParts(); renderStats(); renderCard(); applyHighlight();
+});
+
+/* explode */
+function setExplode(t) {
+  state.explode = t;
+  const e = t * t * (3 - 2 * t);
+  for (const p of parts) p.obj.position.copy(p.base).addScaledVector(p.off, e);
+}
+const bAsm = document.getElementById('bAsm'), bExp = document.getElementById('bExp');
+function setMode(exploded) {
+  state.explodeTarget = exploded ? 1 : 0;
+  bAsm.setAttribute('aria-pressed', !exploded); bExp.setAttribute('aria-pressed', exploded);
+  if (reduceMotion) setExplode(state.explodeTarget);
+}
+bAsm.onclick = () => setMode(false); bExp.onclick = () => setMode(true);
+const bSpin = document.getElementById('bSpin');
+bSpin.setAttribute('aria-pressed', state.spin);
+bSpin.onclick = () => { state.spin = !state.spin; bSpin.setAttribute('aria-pressed', state.spin); };
+
+/* camera framing */
+const VIEW_DIR = V(0.52, 0.42, 0.74).normalize();
+function fitDistance() { return 0.47 * Math.max(1, 1.2 / camera.aspect) * (1 + 0.45 * state.explode); }
+function resetView() {
+  controls.target.set(0, 0.035 + 0.075 * state.explode, 0);
+  camera.position.copy(controls.target).addScaledVector(VIEW_DIR, fitDistance());
+  controls.update();
+}
+document.getElementById('bReset').onclick = resetView;
+
+function resize() {
+  const w = view.clientWidth, h = view.clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(view);
+resize(); resetView();
+
+/* picking */
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), tip = document.getElementById('tip');
+let down = null, pendingHover = null;
+function pick(cx, cy) {
+  const r = canvas.getBoundingClientRect();
+  ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+  const hit = ray.intersectObject(root, true).find(h => h.object.userData.comp && (!state.selected || h.object.userData.comp === state.selected || h.object.material.opacity > 0.2));
+  return hit ? hit.object.userData.comp : (ray.intersectObject(root, true)[0]?.object.userData.comp || null);
+}
+canvas.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY }; });
+canvas.addEventListener('pointerup', e => {
+  if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 5) { down = null; return; }
+  down = null; const id = pick(e.clientX, e.clientY);
+  select(id && id === state.selected ? null : id, true);
+});
+canvas.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') pendingHover = { x: e.clientX, y: e.clientY }; });
+canvas.addEventListener('pointerleave', () => { pendingHover = null; tip.hidden = true; });
+
+/* loop */
+const clock = new THREE.Clock();
+let lastExplode = 0;
+function frame() {
+  const dt = Math.min(clock.getDelta(), 0.05);
+  if (state.explode !== state.explodeTarget) {
+    const step = dt / 0.9, t = state.explodeTarget > state.explode ? Math.min(1, state.explode + step) : Math.max(0, state.explode - step);
+    setExplode(t);
+  }
+  if (state.explode !== lastExplode) {
+    const k = (1 + 0.45 * state.explode) / (1 + 0.45 * lastExplode);
+    const off = camera.position.clone().sub(controls.target).multiplyScalar(k);
+    controls.target.y = 0.035 + 0.075 * state.explode;
+    camera.position.copy(controls.target).add(off);
+    lastExplode = state.explode;
+  }
+  if (state.spin) for (const s of spinners) s.rotor.rotation.y += s.sign * dt * 7;
+  controls.update();
+  if (pendingHover) {
+    const id = pick(pendingHover.x, pendingHover.y), r = view.getBoundingClientRect();
+    if (id) { tip.hidden = false; tip.textContent = C[id].name; tip.style.left = (pendingHover.x - r.left) + 'px'; tip.style.top = (pendingHover.y - r.top) + 'px'; canvas.style.cursor = 'pointer'; }
+    else { tip.hidden = true; canvas.style.cursor = ''; }
+    pendingHover = null;
+  }
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+renderParts(); renderStats(); renderCard(); applyHighlight();
+requestAnimationFrame(frame);
+
+/* hooks for the export script (export.cjs) */
+window.__drone = {
+  ready: true, root, COMPONENTS, BATTERIES, parts,
+  setMode(exploded) { state.explodeTarget = state.explode = exploded ? 1 : 0; setExplode(state.explode); bAsm.setAttribute('aria-pressed', !exploded); bExp.setAttribute('aria-pressed', exploded); lastExplode = state.explode; resetView(); },
+  setSpin(on) { state.spin = on; bSpin.setAttribute('aria-pressed', on); if (!on) spinners.forEach(s => (s.rotor.rotation.y = 0)); },
+  select,
+  async exportGLB(compId) {
+    const { GLTFExporter } = await import('three/addons/exporters/GLTFExporter.js');
+    select(null);
+    let target = root;
+    if (compId) {
+      target = new THREE.Group(); target.name = C[compId].name; target.scale.setScalar(0.001);
+      for (const p of parts.filter(p => p.comp === compId)) target.add(p.obj.clone(true));
+    }
+    const buf = await new GLTFExporter().parseAsync(target, { binary: true });
+    const bytes = new Uint8Array(buf); let s = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(s);
+  },
+};
+</script>

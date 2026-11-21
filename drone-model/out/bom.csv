@@ -1,0 +1,16 @@
+Subsystem,Component,Spec,Qty,Unit mass (g),Line mass (g),Details
+Airframe,Carbon fiber frame,225 mm true-X,1,112,112,"Wheelbase: 225 mm motor to motor; Arms: 5 mm T700 carbon, 16 × 16 mm motor mount; Top plate: 2 mm carbon, strap slots; Stack mounts: 30.5 × 30.5 mm, M3; Standoffs: 4 × 30 mm aluminium, M3; Camera mount: 19 mm side plates, 0–50° tilt"
+Airframe,Wiring & hardware,"Bolts, motor leads",1,14,14,"Stack bolts: 4 × M3 × 40 mm titanium; Motor bolts: 16 × M3 × 8 mm; Motor leads: 3 × 18 AWG silicone per motor; Frame bolts: M3 button head, top and bottom"
+Airframe,Battery strap & grip pad,20 × 250 mm,1,6,6,"Strap: 20 × 250 mm, Kevlar-reinforced; Buckle: Aluminium, quick release; Pad: 1 mm silicone grip pad"
+Propulsion,Brushless motor,2207 · 1950 KV,4,32.5,130,"Stator: 22 × 7 mm, 12N14P; KV: 1950 rpm per volt; Shaft: M5, 5 mm titanium; Mount: 16 × 16 mm, M3; Peak thrust: ≈1.45 kg on 6S; Layout: M1 rear-right CW · M2 front-right CCW · M3 rear-left CCW · M4 front-left CW"
+Propulsion,Propeller,5.1 × 4.3 × 3,4,4.2,16.8,"Diameter: 5.1 in (130 mm); Pitch: 4.3 in (109 mm per turn); Blades: 3, polycarbonate; Hub: M5, locked with nylock nut; Colours: Orange front, smoke rear for orientation"
+Propulsion,4-in-1 ESC,55 A · 3–6S,1,15,15,"Current: 55 A continuous per motor; Input: 3–6S LiPo; Firmware: BLHeli_32 / AM32 / Bluejay; Protocol: DShot600, bidirectional; Mount: 30.5 × 30.5 mm, M3 soft-mount; Extras: Current sensor, onboard TVS"
+Flight electronics,Flight controller,F7 · 30.5 × 30.5,1,8,8,"MCU: STM32F722, 216 MHz; IMU: ICM-42688-P gyro/accel; Barometer: DPS310; Blackbox: 16 MB flash; UARTs: 5, plus I²C for GPS compass; Firmware: Betaflight or INAV; Connector: USB-C for setup"
+Flight electronics,GPS module,M10 · 20 × 20,1,7,7,"Chipset: u-blox M10 class; Antenna: 18 × 18 mm ceramic patch; Constellations: GPS, Galileo, GLONASS, BeiDou; Update rate: 10 Hz; Interface: UART + I²C compass"
+Flight electronics,Radio receiver,ExpressLRS 2.4 GHz,1,1.5,1.5,"Protocol: ExpressLRS; Band: 2.4 GHz; Rate: up to 500 Hz; Antenna: T-dipole in protective tubes; Size: 18 × 11 mm, heat-shrunk"
+Video & radio,FPV camera,19 mm micro,1,6.5,6.5,"Size: 19 × 19 mm; Lens: 2.1 mm, ≈155° FOV; Uptilt: 25°; Latency: < 10 ms; Power: 5 V from FC"
+Video & radio,Video transmitter,5.8 GHz · 30.5 mm,1,7,7,"Band: 5.8 GHz, 48 channels; Power: 25 / 200 / 400 / 1000 mW; Control: SmartAudio from FC; Connector: MMCX; Mount: 30.5 × 30.5 mm, top of stack"
+Video & radio,VTX antenna,5.8 GHz RHCP,1,4,4,"Polarisation: RHCP; Gain: ≈2 dBi; Connector: MMCX, 80 mm lead; Mount: TPU clamp on rear standoff, 30° up"
+Power,LiPo battery,6S 1100 mAh,1,185,185,"Cells: 6S, 22.2 V nominal, 25.2 V full; Capacity: 1100 mAh · 24.4 Wh; Discharge: 120C; Size: 74 × 35 × 38 mm; Connector: XT60 female, 12 AWG"
+Power,Low-ESR capacitor,1000 µF 35 V,1,4,4,Capacitance: 1000 µF; Voltage: 35 V (6S max 25.2 V); Size: 10 × 20 mm; Fitted: Across the ESC battery pads
+Power,Power lead,XT60 · 12 AWG,1,9,9,"Wire: 12 AWG silicone, 70 mm; Connector: XT60 male, 60 A continuous; Routing: Out the rear, between the plates"
